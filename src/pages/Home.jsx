@@ -37,28 +37,32 @@ const Home = () => {
           throw new Error(`Failed to fetch posts: ${postsResponse.status}`);
         }
         const postsData = await postsResponse.json();
-        setPosts(postsData);
-    
-        const commentsPromises = postsData.slice(0, 3).map(post => 
-          fetch(`${import.meta.env.VITE_API_URL}/api/posts/${post._id}/comments`)
-          .then(res => res.json())
-          .catch(() => [])
-        );
-        
-        const commentsData = await Promise.all(commentsPromises);
-        const flattenedComments = commentsData
-          .flat()
-          .filter(comment => comment)
-          .sort((a, b) => {
-            const dateA = new Date(a?.CreatedAt || a?.created_at);
-            const dateB = new Date(b?.CreatedAt || b?.created_at);
-            return dateB - dateA;
-          });
-    
-        setComments(flattenedComments);
+        setPosts(postsData || []); // 确保设置空数组
+      
+        if (postsData && postsData.length > 0) {
+          const commentsPromises = postsData.slice(0, 3).map(post => 
+            fetch(`${import.meta.env.VITE_API_URL}/api/posts/${post._id}/comments`)
+            .then(res => res.json())
+            .catch(() => [])
+          );
+          
+          const commentsData = await Promise.all(commentsPromises);
+          const flattenedComments = commentsData
+            .flat()
+            .filter(comment => comment)
+            .sort((a, b) => {
+              const dateA = new Date(a?.CreatedAt || a?.created_at);
+              const dateB = new Date(b?.CreatedAt || b?.created_at);
+              return dateB - dateA;
+            });
+      
+          setComments(flattenedComments || []);
+        }
       } catch (err) {
         setError(err.message);
         console.error('Error fetching data:', err);
+        setPosts([]);
+        setComments([]);
       } finally {
         setLoading(false);
       }
