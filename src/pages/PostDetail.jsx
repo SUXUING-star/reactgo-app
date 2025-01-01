@@ -176,7 +176,12 @@ function PostDetail() {
           )}
 
           {/* 内容 */}
-          <div className="prose max-w-none mb-6">{post?.content}</div>
+          <div 
+            className="prose max-w-none mb-6 whitespace-pre-wrap"
+            dangerouslySetInnerHTML={{ 
+              __html: post?.content?.replace(/\n/g, '<br>') || ''
+            }}
+          />
 
           {/* 底部操作栏 */}
           <div className="border-t pt-4 mt-6">

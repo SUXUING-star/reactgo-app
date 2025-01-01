@@ -63,9 +63,12 @@ const Home = () => {
           </div>
         )}
         
-        <p className="text-gray-600 mb-4 line-clamp-2">
-          {post?.content || '暂无内容'}
-        </p>
+        <p 
+          className="text-gray-600 mb-4 whitespace-pre-wrap"
+          dangerouslySetInnerHTML={{ 
+            __html: post?.content || '暂无内容'
+          }}
+        />
         
         <div className="flex items-center">
           <img
@@ -175,3 +178,4 @@ return (
 }
 
 export default Home
+

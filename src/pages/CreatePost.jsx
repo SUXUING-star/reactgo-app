@@ -166,9 +166,13 @@ function CreatePost() {
                 </label>
                 <textarea
                   value={content}
-                  onChange={(e) => setContent(e.target.value)}
+                  onChange={(e) => {
+                    // 保留用户输入的换行符
+                    const formattedContent = e.target.value.replace(/\n/g, '<br>')
+                    setContent(formattedContent)
+                  }}
                   rows={12}
-                  className="block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm whitespace-pre-wrap"
                   required
                   minLength={10}
                   placeholder="请输入内容（至少10字）"
