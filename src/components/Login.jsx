@@ -10,51 +10,35 @@ function Login() {
   const navigate = useNavigate()
   const { login } = useAuth()
 
-  // src/components/Login.jsx
-    const handleSubmit = async (e) => {
+
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    if (content.length < 10) {
-      setError('内容至少需要10个字符')
-      return
-    }
-    
     setError('')
-    setLoading(true)
-
+    
     try {
-      const token = localStorage.getItem('token')
-      console.log('Sending post data:', { title, content, category }) // 添加日志
-
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/posts`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/login`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          title: title.trim(),
-          content: content.trim(),
-          category: category,
-        }),
+        body: JSON.stringify({ username, password })
       })
 
-      if (!response.ok) {
-        const errorData = await response.text() // 使用 text() 而不是 json()
-        console.error('Server response:', errorData) // 添加日志
-        throw new Error(errorData || '发布失败')
-      }
-
       const data = await response.json()
-      console.log('Create post response:', data) // 添加日志
-
-      navigate('/')
-    } catch (err) {
-      console.error('Create post error:', err)
-      setError(err.message || '发布失败，请稍后重试')
-    } finally {
-      setLoading(false)
+      if (response.ok) {
+        // 确保保存用户ID
+        login(data.token, {
+          id: data.user.id,
+          username: data.user.username
+        })
+        navigate('/')
+      } else {
+        setError(data.error || '登录失败')
+      }
+    } catch (error) {
+      setError('登录时发生错误')
     }
-}
+  }
 
 return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">

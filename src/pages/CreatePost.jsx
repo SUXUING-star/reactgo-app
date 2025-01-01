@@ -50,55 +50,56 @@ function CreatePost() {
     setPreview('')
   }, [])
 
- // src/pages/CreatePost.jsx
-    // 在 CreatePost.jsx 中添加日志
-    const handleSubmit = async (e) => {
-      e.preventDefault()
-      setError('')
-      setLoading(true)
-    
-      // 表单验证
-      if (!title.trim() || !content.trim() || !category) {
-        setError('请填写所有必填字段')
-        setLoading(false)
-        return
-      }
-    
-      const postData = {
-        title: title.trim(),
-        content: content.trim(),
-        category
-      }
-    
-      try {
-        console.log('Sending post data:', postData) // 调试日志
-    
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/posts`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify(postData)
-        })
-    
-        // 检查响应状态
-        const responseText = await response.text()
-        console.log('Server response:', responseText) // 调试日志
-    
-        if (!response.ok) {
-          throw new Error(responseText || '发布失败')
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+        let imageURL = '';
+        
+        // 上传图片
+        if (image) {
+            const formData = new FormData();
+            formData.append('file', image); // 改为 'file' 以匹配后端
+            
+            const uploadResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/upload`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+            
+            if (uploadResponse.ok) {
+                const uploadData = await uploadResponse.json();
+                imageURL = uploadData.url;
+            }
         }
-    
-        // 如果成功，重定向到首页
-        navigate('/')
-      } catch (err) {
-        console.error('Create post error:', err)
-        setError(err.message || '发布失败，请稍后重试')
-      } finally {
-        setLoading(false)
-      }
+        
+        // 发送帖子数据
+        const postData = {
+            title: title.trim(),
+            content: content.trim(),
+            category,
+            imageURL // 使用上传后得到的URL
+        };
+
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/posts`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(postData)
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to create post');
+        }
+
+        navigate('/');
+    } catch (err) {
+        setError(err.message);
     }
+};
 
   return (
     <div className="w-full grid grid-cols-1 lg:grid-cols-3 gap-6">

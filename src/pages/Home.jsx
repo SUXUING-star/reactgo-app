@@ -1,6 +1,6 @@
 // src/pages/Home.jsx
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { formatDistance } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
 import { useAuth } from '../context/AuthContext'
@@ -28,38 +28,34 @@ const Home = () => {
   const [error, setError] = useState(null)
   const { isAuthenticated } = useAuth()
   const [comments, setComments] = useState([])
+  const navigate = useNavigate();
+  
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const postsResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/posts`);
-        if (!postsResponse.ok) {
-          throw new Error(`Failed to fetch posts: ${postsResponse.status}`);
-        }
-        const postsData = await postsResponse.json();
-        if (!Array.isArray(postsData)) {
-          setPosts([]);
+        const token = localStorage.getItem('token');
+        if (!token) {
+          // 如果没有token，可以选择重定向到登录页面
+          navigate('/login');
           return;
         }
-        setPosts(postsData);
-      
-        const commentsPromises = postsData.slice(0, 3).map(post => 
-          fetch(`${import.meta.env.VITE_API_URL}/api/posts/${post._id}/comments`)
-          .then(res => res.json())
-          .catch(() => [])
-        );
-        
-        const commentsData = await Promise.all(commentsPromises);
-        const flattenedComments = commentsData
-          .flat()
-          .filter(comment => comment)
-          .sort((a, b) => {
-            const dateA = new Date(a?.CreatedAt || a?.created_at);
-            const dateB = new Date(b?.CreatedAt || b?.created_at);
-            return dateB - dateA;
-          });
-    
-        setComments(flattenedComments);
+
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/posts`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.status === 403) {
+          // token可能过期，清除token并重定向到登录页
+          localStorage.removeItem('token');
+          navigate('/login');
+          return;
+        }
+
+        const data = await response.json();
+        setPosts(data);
       } catch (err) {
         setError(err.message);
         console.error('Error fetching data:', err);
@@ -69,6 +65,45 @@ const Home = () => {
     };
     fetchData();
    }, []);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    try {
+      let imageURL = '';
+      
+      // 如果有图片，先上传图片
+      if (image) {
+        const formData = new FormData();
+        formData.append('image', image);
+        
+        const uploadResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/upload`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          body: formData
+        });
+        
+        if (uploadResponse.ok) {
+          const uploadData = await uploadResponse.json();
+          imageURL = uploadData.url;
+        }
+      }
+      
+      // 发送帖子数据，包含图片URL
+      const postData = {
+        title: title.trim(),
+        content: content.trim(),
+        category,
+        imageURL
+      };
+      
+      // 后续代码保持不变
+    } catch (err) {
+      // 错误处理
+    }
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -99,6 +134,19 @@ const Home = () => {
                     <h2 className="text-2xl font-bold mb-3 text-gray-900 group-hover:text-blue-600">
                       {post?.title || '无标题'}
                     </h2>
+                    {post?.imageURL && (
+                      <div className="mb-4">
+                          <img 
+                              src={`${import.meta.env.VITE_API_URL}${post.imageURL}`}
+                              alt={post.title}
+                              className="rounded-lg w-full h-48 object-cover"
+                              onError={(e) => {
+                                  console.error('Image failed to load:', e);
+                                  e.target.style.display = 'none';
+                              }}
+                          />
+                        </div>
+                      )}
                     
                     <p className="text-gray-600 mb-4 line-clamp-2">
                       {post?.content || '暂无内容'}

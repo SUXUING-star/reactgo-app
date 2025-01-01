@@ -23,10 +23,15 @@ export function AuthProvider({ children }) {
 
   const login = (newToken, userData) => {
     try {
+      // 添加 isAdmin 字段
+      const userWithRole = {
+        ...userData,
+        isAdmin: userData.username === 'admin' // 这里简单用用户名判断，你也可以从后端获取
+      }
       setToken(newToken)
-      setUser(userData)
+      setUser(userWithRole)
       localStorage.setItem('token', newToken)
-      localStorage.setItem('user', JSON.stringify(userData))
+      localStorage.setItem('user', JSON.stringify(userWithRole))
     } catch (error) {
       console.error('Error saving auth data:', error)
     }
