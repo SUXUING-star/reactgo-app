@@ -30,7 +30,67 @@ const Home = () => {
   const [error, setError] = useState(null)
   const { isAuthenticated, token } = useAuth()
   const navigate = useNavigate()
+  // 渲染帖子列表项
+  const renderPostItem = (post, index) => (
+    <Link
+      key={post?._id || `post-${index}`}
+      to={`/post/${post?._id}`}
+      className="block bg-white rounded-xl shadow-sm hover:shadow-md transition-all transform hover:translate-y-[-2px]"
+    >
+      <div className="p-6">
+        <div className="flex items-center space-x-2 mb-4">
+          <span className="px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+            {post?.category || '未分类'}
+          </span>
+          <div className="flex-1 border-t border-gray-200"></div>
+        </div>
+        
+        <h2 className="text-2xl font-bold mb-3 text-gray-900 group-hover:text-blue-600">
+          {post?.title || '无标题'}
+        </h2>
 
+        {post?.imageURL && (
+          <div className="mb-4">
+            <img 
+              src={`${import.meta.env.VITE_API_URL}${post.imageURL}`}
+              alt={post.title}
+              className="rounded-lg w-full h-48 object-cover"
+              onError={(e) => {
+                console.error('Image failed to load:', e)
+                e.target.style.display = 'none'
+              }}
+            />
+          </div>
+        )}
+        
+        <p className="text-gray-600 mb-4 line-clamp-2">
+          {post?.content || '暂无内容'}
+        </p>
+        
+        <div className="flex items-center">
+          <img
+            src={`https://api.dicebear.com/7.x/initials/svg?seed=${post?.author || 'anonymous'}`}
+            alt=""
+            className="w-8 h-8 rounded-full"
+          />
+          <div className="ml-3">
+            <p className="text-sm font-medium text-gray-900">
+              {post?.author || '匿名用户'}
+            </p>
+            <p className="text-sm text-gray-500">
+              {post?.created_at ? 
+                formatDistance(new Date(post.created_at), new Date(), {
+                  addSuffix: true,
+                  locale: zhCN,
+                })
+                : '未知时间'
+              }
+            </p>
+          </div>
+        </div>
+      </div>
+    </Link>
+  )
   useEffect(() => {
     const fetchPosts = async () => {
       try {
