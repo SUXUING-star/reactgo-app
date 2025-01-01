@@ -8,7 +8,7 @@ import Register from './pages/Register'
 import CreatePost from './pages/CreatePost'
 import PostDetail from './pages/PostDetail'
 import Profile from './pages/Profile'
-
+import VerifyEmail from './pages/VerifyEmail'
 function App() {
   return (
     <AuthProvider>
@@ -23,6 +23,7 @@ function App() {
               <Route path="/create-post" element={<CreatePost />} />
               <Route path="/post/:id" element={<PostDetail />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/verify-email" element={<VerifyEmail />} />
             </Routes>
           </div>
         </div>

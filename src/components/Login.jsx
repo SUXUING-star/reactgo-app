@@ -12,33 +12,44 @@ function Login() {
 
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setError('')
-    
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ username, password })
-      })
+    e.preventDefault();
+    setError('');
 
-      const data = await response.json()
-      if (response.ok) {
-        // 确保保存用户ID
-        login(data.token, {
-          id: data.user.id,
-          username: data.user.username
-        })
-        navigate('/')
-      } else {
-        setError(data.error || '登录失败')
-      }
-    } catch (error) {
-      setError('登录时发生错误')
+    // 去除首尾空格
+    const trimmedUsername = username.trim();
+    const trimmedPassword = password.trim();
+
+    if (!trimmedUsername || !trimmedPassword) {
+        setError('用户名和密码不能为空');
+        return;
     }
-  }
+
+    try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+                username: trimmedUsername, 
+                password: trimmedPassword 
+            })
+        });
+
+        const data = await response.json();
+        console.log('Login response:', data);
+        
+        if (response.ok) {
+            login(data.token, data.user);
+            navigate('/');
+        } else {
+            setError(data.error || '登录失败');
+        }
+    } catch (error) {
+        console.error('Login error:', error);
+        setError('登录时发生错误');
+    }
+  };
 
 return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">

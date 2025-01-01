@@ -23,15 +23,22 @@ export function AuthProvider({ children }) {
 
   const login = (newToken, userData) => {
     try {
-      // 添加 isAdmin 字段
-      const userWithRole = {
+      // 构建包含所有必要信息的用户对象
+      const userWithDetails = {
         ...userData,
-        isAdmin: userData.username === 'admin' // 这里简单用用户名判断，你也可以从后端获取
+        isAdmin: userData.username === 'admin',
+        id: userData.id,
+        username: userData.username,
+        email: userData.email,
+        isVerified: userData.is_verified,
+        createdAt: userData.created_at,
+        tokenExpiredAt: userData.token_expired_at
       }
+      
       setToken(newToken)
-      setUser(userWithRole)
+      setUser(userWithDetails)
       localStorage.setItem('token', newToken)
-      localStorage.setItem('user', JSON.stringify(userWithRole))
+      localStorage.setItem('user', JSON.stringify(userWithDetails))
     } catch (error) {
       console.error('Error saving auth data:', error)
     }
@@ -64,6 +71,7 @@ export function AuthProvider({ children }) {
         }
       } catch (error) {
         console.error('Error verifying token:', error)
+        logout()
       }
     }
 
