@@ -52,14 +52,19 @@ function CreatePost() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError('');
+    
     try {
         let imageURL = '';
         
         // 上传图片
         if (image) {
+            console.log('Preparing to upload image:', image.name);
             const formData = new FormData();
-            formData.append('file', image); // 改为 'file' 以匹配后端
+            formData.append('file', image);
             
+            console.log('Sending upload request to:', `${import.meta.env.VITE_API_URL}/api/upload`);
             const uploadResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/upload`, {
                 method: 'POST',
                 headers: {
@@ -68,9 +73,25 @@ function CreatePost() {
                 body: formData
             });
             
-            if (uploadResponse.ok) {
-                const uploadData = await uploadResponse.json();
-                imageURL = uploadData.url;
+            console.log('Upload response status:', uploadResponse.status);
+            const uploadData = await uploadResponse.json();
+            console.log('Upload response data:', uploadData);
+            
+            if (!uploadResponse.ok) {
+                throw new Error(uploadData.error || 'Failed to upload image');
+            }
+            
+            imageURL = uploadData.url;
+            console.log('Received image URL:', imageURL);
+            
+            // 验证图片URL是否可访问
+            try {
+                const imgResponse = await fetch(imageURL);
+                if (!imgResponse.ok) {
+                    console.error('Image URL not accessible:', imgResponse.status);
+                }
+            } catch (imgError) {
+                console.error('Error verifying image URL:', imgError);
             }
         }
         
@@ -79,9 +100,10 @@ function CreatePost() {
             title: title.trim(),
             content: content.trim(),
             category,
-            imageURL // 使用上传后得到的URL
+            imageURL
         };
-
+        
+        console.log('Sending post data:', postData);
         const response = await fetch(`${import.meta.env.VITE_API_URL}/api/posts`, {
             method: 'POST',
             headers: {
@@ -92,12 +114,18 @@ function CreatePost() {
         });
 
         if (!response.ok) {
-            throw new Error('Failed to create post');
+            const data = await response.json();
+            throw new Error(data.error || 'Failed to create post');
         }
 
+        const postResponse = await response.json();
+        console.log('Post created successfully:', postResponse);
         navigate('/');
     } catch (err) {
-        setError(err.message);
+        console.error('Error in handleSubmit:', err);
+        setError(err.message || '发布失败，请重试');
+    } finally {
+        setLoading(false);
     }
 };
 
