@@ -403,18 +403,21 @@ function PostDetail() {
 
           {/* 图片 */}
           {post?.imageURL && (
-            <div className="mb-6">
-              <img 
-                src={`${import.meta.env.VITE_API_URL}${post.imageURL}`}
-                alt={post.title}
-                className="rounded-lg w-full max-h-[400px] object-contain mx-auto shadow-md hover:shadow-lg transition-shadow"
-                onError={(e) => {
-                  console.error('Image failed to load:', e);
-                  e.target.style.display = 'none';
-                }}
-              />
-            </div>
-          )}
+          <div className="mb-6">
+            <img 
+              // 修改为更健壮的图片URL处理
+              src={post.imageURL.startsWith('http') 
+                ? post.imageURL 
+                : `${import.meta.env.VITE_API_URL}${post.imageURL}`}
+              alt={post.title}
+              className="rounded-lg w-full max-h-[400px] object-contain mx-auto shadow-md hover:shadow-lg transition-shadow"
+              onError={(e) => {
+                console.error('Image failed to load:', e);
+                e.target.style.display = 'none';
+              }}
+            />
+          </div>
+        )}
 
           {/* 内容 */}
           <div 
