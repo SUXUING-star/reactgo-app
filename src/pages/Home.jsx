@@ -52,12 +52,15 @@ const Home = () => {
         {post?.imageURL && (
           <div className="mb-4">
             <img 
-              src={`${import.meta.env.VITE_API_URL}${post.imageURL}`}
+              src={post.imageURL.startsWith('http') 
+                ? post.imageURL 
+                : `${import.meta.env.VITE_API_URL}${post.imageURL}`
+              }
               alt={post.title}
               className="rounded-lg w-full h-48 object-cover"
               onError={(e) => {
-                console.error('Image failed to load:', e)
-                e.target.style.display = 'none'
+                console.error('Image load error:', post.imageURL);
+                e.target.style.display = 'none';
               }}
             />
           </div>
