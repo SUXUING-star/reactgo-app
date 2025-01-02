@@ -405,15 +405,22 @@ function PostDetail() {
           {post?.imageURL && (
             <div className="mb-6">
               <img 
-                src={post.imageURL.startsWith('http') 
-                  ? post.imageURL 
-                  : `${import.meta.env.VITE_API_URL}${post.imageURL}`
-                }
+                src={post.imageURL}  // 直接使用URL，因为现在所有图片都是完整的云存储URL
                 alt={post.title}
                 className="rounded-lg w-full max-h-[400px] object-contain mx-auto shadow-md hover:shadow-lg transition-shadow"
                 onError={(e) => {
                   console.error('Image load error:', post.imageURL);
-                  e.target.style.display = 'none';
+                  if (!e.target.dataset.retried) {
+                    // 如果是本地路径，尝试添加API URL前缀（用于向后兼容）
+                    if (post.imageURL.startsWith('/uploads/')) {
+                      e.target.src = `${import.meta.env.VITE_API_URL}${post.imageURL}`;
+                      e.target.dataset.retried = 'true';
+                    } else {
+                      e.target.style.display = 'none';
+                    }
+                  } else {
+                    e.target.style.display = 'none';
+                  }
                 }}
               />
             </div>
