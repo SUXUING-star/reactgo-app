@@ -50,28 +50,24 @@ const Home = () => {
         </h2>
         {/*图片*/}
         {post?.imageURL && (
-          <div className="mb-4">
-            <img 
-              src={post.imageURL}  // 直接使用URL
-              alt={post.title}
-              className="rounded-lg w-full h-48 object-cover"
-              onError={(e) => {
-                console.error('Image load error:', post.imageURL);
-                if (!e.target.dataset.retried) {
-                  // 如果是本地路径，尝试添加API URL前缀（用于向后兼容）
-                  if (post.imageURL.startsWith('/uploads/')) {
-                    e.target.src = `${import.meta.env.VITE_API_URL}${post.imageURL}`;
-                    e.target.dataset.retried = 'true';
-                  } else {
-                    e.target.style.display = 'none';
-                  }
-                } else {
-                  e.target.style.display = 'none';
-                }
-              }}
-            />
-          </div>
-        )}
+        <div className="mb-4">
+          <img 
+            src={post.imageURL}
+            alt={post.title}
+            className="rounded-lg w-full h-48 object-cover"
+            onError={(e) => {
+              console.error('Image load error:', {
+                url: post.imageURL,
+                post: post
+              });
+              e.target.style.display = 'none';
+            }}
+            onLoad={() => {
+              console.log('Image loaded successfully:', post.imageURL);
+            }}
+          />
+        </div>
+      )}
         <p 
           className="text-gray-600 mb-4 whitespace-pre-wrap"
           dangerouslySetInnerHTML={{ 
