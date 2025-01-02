@@ -90,24 +90,24 @@ const Sidebar = ({ totalPosts = 0 }) => {
           {latestComments && latestComments.length > 0 ? (
             latestComments.map(comment => (
               <Link 
-                key={comment.ID} 
-                to={`/post/${comment.PostID}`}
+                key={comment._id} // 修改为 _id
+                to={`/post/${comment.post_id}`} // 修改为 post_id
                 className="block group border-l-2 border-transparent hover:border-blue-500 pl-4 transition-all"
               >
                 <div className="flex items-center text-xs text-gray-500 mb-1">
                   <img
-                    src={`https://api.dicebear.com/7.x/initials/svg?seed=${comment.Author}`}
+                    src={`https://api.dicebear.com/7.x/initials/svg?seed=${comment.author}`} // 修改为 author
                     alt=""
                     className="w-4 h-4 rounded-full mr-1"
                   />
-                  <span>{comment.Author}</span>
+                  <span>{comment.author}</span> {/* 修改为 author */}
                 </div>
                 <p className="text-gray-600 text-sm line-clamp-2 group-hover:text-gray-900">
-                  {comment.Content}
+                  {comment.content} {/* 修改为 content */}
                 </p>
                 <p className="text-gray-400 text-xs mt-1">
-                  {comment.CreatedAt ? 
-                    formatDistance(new Date(comment.CreatedAt), new Date(), {
+                  {comment.created_at ? // 修改为 created_at
+                    formatDistance(new Date(comment.created_at), new Date(), {
                       addSuffix: true,
                       locale: zhCN,
                     })

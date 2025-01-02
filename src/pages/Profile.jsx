@@ -1,7 +1,7 @@
 // src/pages/Profile.jsx
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
-
+import { Link } from 'react-router-dom'
 function Profile() {
   const { user, token } = useAuth()
   const [posts, setPosts] = useState([])  // 初始化为空数组
@@ -158,15 +158,24 @@ function Profile() {
         <div className="space-y-4">
           {posts.map((post) => (
             <div key={post._id} className="border-b pb-4 last:border-b-0">
-              <h3 className="text-lg font-semibold">{post.title}</h3>
-              <p className="text-gray-600 mt-2">{post.content.slice(0, 200)}...</p>
-              <div className="text-sm text-gray-500 mt-2">
-                发布于 {new Date(post.created_at).toLocaleString()}
-              </div>
+              <Link 
+                to={`/post/${post._id}`}
+                className="block hover:bg-gray-50 transition duration-150 ease-in-out rounded-lg p-3"
+              >
+                <h3 className="text-lg font-semibold text-blue-600 hover:text-blue-800">
+                  {post.title}
+                </h3>
+                <p className="text-gray-600 mt-2">{post.content.slice(0, 200)}...</p>
+                <div className="text-sm text-gray-500 mt-2 flex items-center">
+                  <span>发布于 {new Date(post.created_at).toLocaleString()}</span>
+                  <span className="mx-2">•</span>
+                  <span>{post.comments_count || 0} 条评论</span>
+                </div>
+              </Link>
             </div>
           ))}
           {posts.length === 0 && (
-            <p className="text-gray-500 text-center">暂无帖子</p>
+            <p className="text-gray-500 text-center py-4">暂无帖子</p>
           )}
         </div>
       </div>
@@ -177,14 +186,24 @@ function Profile() {
         <div className="space-y-4">
           {comments.map((comment) => (
             <div key={comment._id} className="border-b pb-4 last:border-b-0">
-              <p className="text-gray-600">{comment.content}</p>
-              <div className="text-sm text-gray-500 mt-2">
-                发布于 {new Date(comment.created_at).toLocaleString()}
-              </div>
+              <Link 
+                to={`/post/${comment.post_id}`}
+                className="block hover:bg-gray-50 transition duration-150 ease-in-out rounded-lg p-3"
+              >
+                <div className="flex flex-col">
+                  <span className="text-sm text-blue-600 mb-2">
+                    评论于：{comment.post?.title || '已删除的帖子'}
+                  </span>
+                  <p className="text-gray-600">{comment.content}</p>
+                  <div className="text-sm text-gray-500 mt-2">
+                    发布于 {new Date(comment.created_at).toLocaleString()}
+                  </div>
+                </div>
+              </Link>
             </div>
           ))}
           {comments.length === 0 && (
-            <p className="text-gray-500 text-center">暂无评论</p>
+            <p className="text-gray-500 text-center py-4">暂无评论</p>
           )}
         </div>
       </div>
