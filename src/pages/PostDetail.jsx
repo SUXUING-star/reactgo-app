@@ -236,19 +236,21 @@ function PostDetail() {
       }
     };
      // 修改缩进类名逻辑
-    const getIndentClass = (depth) => {
-      if (depth === 0) return '';
-      return 'pl-8'; // 使用 padding-left 而不是 margin-left
+     const getIndentClass = (depth) => {
+      switch(depth) {
+        case 1:
+          return 'ml-8';
+        case 2:
+          return 'ml-16';
+        default:
+          return '';
+      }
     };
-
+    // 修改 renderComment 函数
     return (
-      <div 
-        key={comment._id} 
-        className={`mb-4 ${depth > 0 ? 'border-l-2 border-blue-100 bg-gray-50' : ''} ${getIndentClass(depth)}`}
-      >
-        {/* 评论主体 */}
-        <div className={`bg-white rounded-lg p-4 ${depth > 0 ? 'bg-gray-50' : ''}`}>
-          {/* 评论头部 */}
+      <div key={comment._id} className="mb-4">
+        {/* 主评论 */}
+        <div className="bg-white rounded-lg p-4">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center text-sm text-gray-500">
               <img
@@ -261,7 +263,6 @@ function PostDetail() {
               <span>{formatCommentDate(comment.created_at)}</span>
             </div>
   
-            {/* 评论操作按钮 */}
             <div className="flex items-center space-x-2">
               {isAuthenticated && (
                 <button
@@ -275,8 +276,7 @@ function PostDetail() {
                 </button>
               )}
   
-              {/* 只在深度小于2时显示回复按钮 */}
-              {depth < 2 && isAuthenticated && (
+              {isAuthenticated && (
                 <button
                   onClick={() => setReplyingTo(comment._id)}
                   className="text-gray-500 hover:text-blue-500 hover:bg-gray-50 p-1 rounded flex items-center space-x-1"
@@ -296,14 +296,12 @@ function PostDetail() {
               )}
             </div>
           </div>
-
   
-          {/* 评论内容 */}
           <div className="text-gray-700 whitespace-pre-wrap">
             {comment.content}
           </div>
   
-          {/* 回复输入框 */}
+          {/* 回复框 */}
           {replyingTo === comment._id && (
             <div className="mt-3 bg-white rounded-lg p-3 border border-gray-200">
               <textarea
@@ -311,7 +309,7 @@ function PostDetail() {
                 onChange={(e) => setReplyContent(e.target.value)}
                 className="w-full rounded-lg border-gray-200 shadow-sm focus:ring-blue-500 focus:border-blue-500 resize-none"
                 rows="2"
-                placeholder="写下你的回复..."
+                placeholder={`回复 ${comment.author}:`}
               />
               <div className="mt-2 flex justify-end space-x-2">
                 <button
@@ -335,12 +333,40 @@ function PostDetail() {
           )}
         </div>
   
-        {/* 渲染回复 */}
+        {/* 回复列表 */}
         {comment.replies && comment.replies.length > 0 && (
-          <div className="mt-4">
-            {comment.replies.map((reply, index) => (
-              <div key={reply._id || index} className="mt-2 first:mt-0">
-                {renderComment(reply, depth + 1)}
+          <div className="ml-8 mt-2 space-y-3 border-l-2 border-blue-100">
+            {comment.replies.map((reply) => (
+              <div key={reply._id} className="pl-4 pt-2">
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center text-sm text-gray-500">
+                      <img
+                        src={`https://api.dicebear.com/7.x/initials/svg?seed=${reply.author}`}
+                        alt=""
+                        className="w-6 h-6 rounded-full mr-2"
+                      />
+                      <span className="font-medium">{reply.author}</span>
+                      <span className="mx-2">•</span>
+                      <span>{formatCommentDate(reply.created_at)}</span>
+                    </div>
+  
+                    <div className="flex items-center space-x-2">
+                      {isAuthenticated && (user?.isAdmin || reply.author_id === user?.id) && (
+                        <button
+                          onClick={() => handleDeleteComment(reply._id)}
+                          className="text-red-500 hover:text-red-600 p-1 hover:bg-red-50 rounded"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+  
+                  <div className="text-gray-700 whitespace-pre-wrap">
+                    {reply.content}
+                  </div>
+                </div>
               </div>
             ))}
           </div>
@@ -348,7 +374,6 @@ function PostDetail() {
       </div>
     );
   };
-
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -380,11 +405,15 @@ function PostDetail() {
           {post?.imageURL && (
             <div className="mb-6">
               <img 
-                src={`${import.meta.env.VITE_API_URL}${post.imageURL}`}
+                src={post.imageURL.startsWith('http') 
+                  ? post.imageURL  // 如果是完整 URL 就直接使用
+                  : `${import.meta.env.VITE_API_URL}${post.imageURL.startsWith('/') ? '' : '/'}${post.imageURL}` // 否则拼接完整路径
+                }
                 alt={post.title}
                 className="rounded-lg w-full max-h-[400px] object-contain mx-auto shadow-md hover:shadow-lg transition-shadow"
                 onError={(e) => {
-                  console.error('Image failed to load:', e);
+                  console.error('Image load error:', e);
+                  console.log('Attempted image URL:', e.target.src);
                   e.target.style.display = 'none';
                 }}
               />
