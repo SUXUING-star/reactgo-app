@@ -72,7 +72,6 @@ const Home = () => {
             />
           </div>
         )}
-        
         <p 
           className="text-gray-600 mb-4 whitespace-pre-wrap"
           dangerouslySetInnerHTML={{ 
