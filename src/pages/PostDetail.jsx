@@ -1,6 +1,6 @@
 // src/pages/PostDetail.jsx
 import { useState, useEffect } from 'react'
-import { useParams , useNavigate } from 'react-router-dom'
+import { useParams , useNavigate ,Link} from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { formatDistance } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
@@ -409,7 +409,7 @@ function PostDetail() {
                 alt={post.title}
                 className="rounded-lg w-full max-h-[400px] object-contain mx-auto shadow-md hover:shadow-lg transition-shadow"
                 onError={(e) => {
-                  console.error('Image load error:', post.imageURL);
+                  //console.error('Image load error:', post.imageURL);
                   if (!e.target.dataset.retried) {
                     // 如果是本地路径，尝试添加API URL前缀（用于向后兼容）
                     if (post.imageURL.startsWith('/uploads/')) {
@@ -435,9 +435,30 @@ function PostDetail() {
           />
 
           {/* 底部操作栏 */}
-          <div className="border-t pt-4 mt-6">
-            <div className="flex justify-end items-center">
-              {isAuthenticated && (user?.isAdmin || post?.author_id?.toString() === user?.id) && (
+        <div className="border-t pt-4 mt-6">
+          <div className="flex justify-end items-center space-x-4">
+            {isAuthenticated && (user?.id === post?.author_id?.toString()) && (
+              <>
+                <Link
+                  to={`/edit-post/${post._id}`}
+                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                >
+                  <svg 
+                    className="w-4 h-4 mr-2" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth={2} 
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" 
+                    />
+                  </svg>
+                  编辑帖子
+                </Link>
+                {/* 删除按钮 */}
                 <button
                   onClick={handleDelete}
                   className="inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
@@ -455,11 +476,12 @@ function PostDetail() {
                       d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" 
                     />
                   </svg>
-                  {user?.isAdmin ? '管理员删除' : '删除帖子'}
+                  删除帖子
                 </button>
-              )}
-            </div>
+              </>
+            )}
           </div>
+        </div>
         </article>
         <div className="bg-white rounded-xl shadow-sm p-6">
           {/* 评论标题 */}

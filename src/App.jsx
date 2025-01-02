@@ -9,6 +9,7 @@ import CreatePost from './pages/CreatePost'
 import PostDetail from './pages/PostDetail'
 import Profile from './pages/Profile'
 import VerifyEmail from './pages/VerifyEmail'
+import EditPost from './pages/EditPost'
 function App() {
   return (
     <AuthProvider>
@@ -24,6 +25,7 @@ function App() {
               <Route path="/post/:id" element={<PostDetail />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/verify-email" element={<VerifyEmail />} />
+              <Route path="/edit-post/:id" element={<EditPost />} />
             </Routes>
           </div>
         </div>
