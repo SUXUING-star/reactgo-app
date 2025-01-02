@@ -29,8 +29,27 @@ const Sidebar = () => {
     };
 
     fetchStats();
+    const fetchLatestComments = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/latest-comments`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setLatestComments(data);
+        }
+      } catch (error) {
+        console.error('Error fetching latest comments:', error);
+      }
+    };
+  
+    fetchLatestComments();
+  
   }, []);
-
+  
   return (
     <div className="space-y-6">
       {/* 发布新帖子部分 */}
