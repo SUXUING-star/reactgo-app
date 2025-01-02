@@ -5,30 +5,31 @@ import { ArrowUpRight, MessageSquare, TrendingUp, Users, Bell } from 'lucide-rea
 import { formatDistance } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 
-const Sidebar = ({ totalPosts = 0 }) => {
+const Sidebar = () => {
   const { isAuthenticated, token } = useAuth();
   const [latestComments, setLatestComments] = useState([]);
+  const [stats, setStats] = useState({
+    totalPosts: 0,
+    totalUsers: 0,
+    totalComments: 0,
+    activeUsers: 0
+  });
 
   useEffect(() => {
-    const fetchLatestComments = async () => {
+    const fetchStats = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/latest-comments`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/community-stats`);
         if (response.ok) {
           const data = await response.json();
-          setLatestComments(data);
+          setStats(data);
         }
       } catch (error) {
-        console.error('Error fetching latest comments:', error);
+        console.error('Error fetching stats:', error);
       }
     };
 
-    fetchLatestComments();
-  }, [token]);
+    fetchStats();
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -61,7 +62,7 @@ const Sidebar = ({ totalPosts = 0 }) => {
                 <span className="text-gray-600">总帖子数</span>
               </div>
               <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                {totalPosts}
+                {stats.totalPosts}
               </span>
             </div>
           </div>
@@ -73,7 +74,18 @@ const Sidebar = ({ totalPosts = 0 }) => {
                 <span className="text-gray-600">活跃用户</span>
               </div>
               <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                {Math.floor(totalPosts * 0.7)}
+                {stats.activeUsers}
+              </span>
+            </div>
+          </div>
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center">
+                <MessageSquare className="w-5 h-5 text-blue-500 mr-2" />
+                <span className="text-gray-600">总评论数</span>
+              </div>
+              <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                {stats.totalComments}
               </span>
             </div>
           </div>
