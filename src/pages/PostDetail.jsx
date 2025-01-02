@@ -405,15 +405,11 @@ function PostDetail() {
           {post?.imageURL && (
             <div className="mb-6">
               <img 
-                src={post.imageURL.startsWith('http') 
-                  ? post.imageURL  // 如果是完整 URL 就直接使用
-                  : `${import.meta.env.VITE_API_URL}${post.imageURL.startsWith('/') ? '' : '/'}${post.imageURL}` // 否则拼接完整路径
-                }
+                src={`${import.meta.env.VITE_API_URL}${post.imageURL}`}
                 alt={post.title}
                 className="rounded-lg w-full max-h-[400px] object-contain mx-auto shadow-md hover:shadow-lg transition-shadow"
                 onError={(e) => {
-                  console.error('Image load error:', e);
-                  console.log('Attempted image URL:', e.target.src);
+                  console.error('Image failed to load:', e);
                   e.target.style.display = 'none';
                 }}
               />
