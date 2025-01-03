@@ -46,7 +46,7 @@ const Home = () => {
           {post?.topic_id && (
             <span className="px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 flex items-center gap-1">
               <Hash className="w-3 h-3" />
-              {post?.topic?.title || '未设置话题'}
+              {post?.topic?.title || '无话题'}
             </span>
           )}
           <div className="flex-1 border-t border-gray-200"></div>

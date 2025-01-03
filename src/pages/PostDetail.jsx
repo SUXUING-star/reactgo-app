@@ -401,7 +401,7 @@ function PostDetail() {
                   className="px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 hover:bg-green-200 transition-colors flex items-center gap-1"
                 >
                    <Hash className="w-3 h-3" />
-                    {topic?.title || '未设置话题'}
+                    {topic?.title || '无话题'}
                 </Link>
                 )}
           </div>

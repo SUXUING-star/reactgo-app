@@ -138,7 +138,7 @@ function Discover() {
                   onClick={(e) => e.stopPropagation()}
                 >
                   <Hash className="w-3 h-3" />
-                  {topics[post.topic_id]?.title || '话题'}
+                  {topics[post.topic_id]?.title || '无话题'}
                 </Link>
               )}
             </div>
