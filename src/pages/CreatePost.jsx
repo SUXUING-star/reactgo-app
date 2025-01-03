@@ -1,5 +1,5 @@
 // src/pages/CreatePost.jsx
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
@@ -13,9 +13,29 @@ function CreatePost() {
   const [error, setError] = useState('')
   const navigate = useNavigate()
   const { token } = useAuth()
+  const [topics, setTopics] = useState([])
+  const [selectedTopic, setSelectedTopic] = useState('')
 
   const categories = ['技术', '生活', '问答', '分享']
 
+  // 获取话题列表
+  useEffect(() => {
+    const fetchTopics = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/topics`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        const data = await response.json();
+        setTopics(data);
+      } catch (error) {
+        console.error('Error fetching topics:', error);
+      }
+    };
+    fetchTopics();
+  }, [token]);
+  
   const handleImageChange = useCallback((e) => {
     const file = e.target.files[0]
     if (file) {
@@ -49,6 +69,7 @@ function CreatePost() {
     setImage(null)
     setPreview('')
   }, [])
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -57,53 +78,50 @@ function CreatePost() {
     
     try {
         let imageURL = '';
-        
-        // 上传图片
         if (image) {
-            console.log('Preparing to upload image:', image.name);
-            const formData = new FormData();
-            formData.append('file', image);
-            
-            console.log('Sending upload request to:', `${import.meta.env.VITE_API_URL}/api/upload`);
-            const uploadResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/upload`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                },
-                body: formData
-            });
-            
-            console.log('Upload response status:', uploadResponse.status);
-            const uploadData = await uploadResponse.json();
-            console.log('Upload response data:', uploadData);
-            
-            if (!uploadResponse.ok) {
-                throw new Error(uploadData.error || 'Failed to upload image');
-            }
-            
-            imageURL = uploadData.url;
-            console.log('Received image URL:', imageURL);
-            
-            // 验证图片URL是否可访问
-            try {
-                const imgResponse = await fetch(imageURL);
-                if (!imgResponse.ok) {
-                    console.error('Image URL not accessible:', imgResponse.status);
-                }
-            } catch (imgError) {
-                console.error('Error verifying image URL:', imgError);
-            }
-        }
+          console.log('Preparing to upload image:', image.name);
+          const formData = new FormData();
+          formData.append('file', image);
+          
+          console.log('Sending upload request to:', `${import.meta.env.VITE_API_URL}/api/upload`);
+          const uploadResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/upload`, {
+              method: 'POST',
+              headers: {
+                  'Authorization': `Bearer ${token}`
+              },
+              body: formData
+          });
+          
+          console.log('Upload response status:', uploadResponse.status);
+          const uploadData = await uploadResponse.json();
+          console.log('Upload response data:', uploadData);
+          
+          if (!uploadResponse.ok) {
+              throw new Error(uploadData.error || 'Failed to upload image');
+          }
+          
+          imageURL = uploadData.url;
+          console.log('Received image URL:', imageURL);
+          
+          // 验证图片URL是否可访问
+          try {
+              const imgResponse = await fetch(imageURL);
+              if (!imgResponse.ok) {
+                  console.error('Image URL not accessible:', imgResponse.status);
+              }
+          } catch (imgError) {
+              console.error('Error verifying image URL:', imgError);
+          }
+      }
         
-        // 发送帖子数据
         const postData = {
             title: title.trim(),
             content: content.trim(),
             category,
-            imageURL
+            imageURL,
+            topic_id: selectedTopic // 添加话题ID
         };
         
-        console.log('Sending post data:', postData);
         const response = await fetch(`${import.meta.env.VITE_API_URL}/api/posts`, {
             method: 'POST',
             headers: {
@@ -118,16 +136,13 @@ function CreatePost() {
             throw new Error(data.error || 'Failed to create post');
         }
 
-        const postResponse = await response.json();
-        console.log('Post created successfully:', postResponse);
         navigate('/');
     } catch (err) {
-        console.error('Error in handleSubmit:', err);
         setError(err.message || '发布失败，请重试');
     } finally {
         setLoading(false);
     }
-};
+  };
 
   return (
     <div className="w-full grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -181,8 +196,24 @@ function CreatePost() {
                 >
                   <option value="">请选择分类</option>
                   {categories.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  话题（可选）
+                </label>
+                <select
+                  value={selectedTopic}
+                  onChange={(e) => setSelectedTopic(e.target.value)}
+                  className="block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                >
+                  <option value="">请选择话题</option>
+                  {topics.map((topic) => (
+                    <option key={topic._id} value={topic._id}>
+                      {topic.title}
                     </option>
                   ))}
                 </select>

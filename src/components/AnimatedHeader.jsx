@@ -1,58 +1,110 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowUpRight, Coffee, Sparkles } from 'lucide-react';
+import { ArrowUpRight, Coffee, Sparkles, Users, MessageSquare, TrendingUp } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const AnimatedHeader = () => {
   const { isAuthenticated } = useAuth();
+  const [stats, setStats] = useState({
+    hotTopics: 0,
+    userCount: 0,
+    activeDiscussions: 0,
+    weeklyGrowth: 0
+  });
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/stats`);
+      const data = await response.json();
+      setStats(data);
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    }
+  };
+
+  const statsItems = [
+    { 
+      icon: <Sparkles className="w-4 h-4" />, 
+      label: '今日热门', 
+      value: `${stats.hotTopics} 个讨论` 
+    },
+    { 
+      icon: <Users className="w-4 h-4" />, 
+      label: '社区成员', 
+      value: `${stats.userCount.toLocaleString()} 人` 
+    },
+    { 
+      icon: <MessageSquare className="w-4 h-4" />, 
+      label: '活跃讨论', 
+      value: `${stats.activeDiscussions} 个话题` 
+    },
+    { 
+      icon: <TrendingUp className="w-4 h-4" />, 
+      label: '周增长', 
+      value: `${stats.weeklyGrowth > 0 ? '+' : ''}${stats.weeklyGrowth.toFixed(1)}%` 
+    },
+  ];
 
   return (
-    <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 rounded-2xl shadow-lg p-12 mb-8">
-      {/* Animated background elements */}
+    <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 rounded-xl shadow-lg p-6 mb-2">
+      {/* 动态背景 */}
       <div className="absolute top-0 left-0 w-full h-full">
-        <div className="absolute w-24 h-24 bg-white/10 rounded-full blur-xl animate-float top-12 left-1/4" />
-        <div className="absolute w-32 h-32 bg-blue-400/10 rounded-full blur-xl animate-float-delayed -top-8 right-1/3" />
-        <div className="absolute w-40 h-40 bg-indigo-400/10 rounded-full blur-xl animate-float-slow bottom-4 right-1/4" />
+        <div className="absolute w-16 h-16 bg-white/10 rounded-full blur-xl animate-float top-8 left-1/4" />
+        <div className="absolute w-20 h-20 bg-blue-400/10 rounded-full blur-xl animate-float-delayed -top-4 right-1/3" />
+        <div className="absolute w-24 h-24 bg-indigo-400/10 rounded-full blur-xl animate-float-slow bottom-2 right-1/4" />
       </div>
 
-      {/* Content */}
-      <div className="relative">
-        <div className="flex items-center justify-start space-x-3 mb-6">
-          <Coffee className="w-8 h-8 text-blue-200 animate-bounce-slow" />
-          <Sparkles className="w-6 h-6 text-yellow-200 animate-pulse" />
+      {/* 主要内容 */}
+      <div className="relative z-10">
+        <div className="flex items-center justify-start space-x-2 mb-4">
+          <Coffee className="w-5 h-5 text-blue-200 animate-bounce-slow" />
+          <Sparkles className="w-4 h-4 text-yellow-200 animate-pulse" />
         </div>
         
-        <div className="max-w-2xl space-y-6">
-          <h1 className="text-5xl font-bold text-white animate-fade-in">
-            欢迎来到茶会
-            <span className="inline-block animate-wave ml-2">~</span>
-          </h1>
-          
-          <p className="text-xl text-blue-100 animate-fade-in-delayed">
-            在这里，每一个想法都值得分享，每一次对话都可能激发灵感
-          </p>
-          
+        <div className="max-w-3xl space-y-4">
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold text-white animate-fade-in">
+              欢迎来到茶会
+              <span className="inline-block animate-wave ml-1">~</span>
+            </h1>
+            
+            <p className="text-base text-blue-100 animate-fade-in-delayed leading-relaxed">
+              在这里，每一个想法都值得分享，每一次对话都可能激发灵感。
+              加入我们的社区，与志同道合的朋友一起探讨、成长、创造。
+            </p>
+          </div>
+
           {!isAuthenticated && (
-            <div className="space-x-4 animate-fade-in-up">
+            <div className="space-x-2 animate-fade-in-up">
               <Link
                 to="/login"
-                className="inline-flex items-center bg-white/90 backdrop-blur-sm text-blue-600 px-6 py-3 rounded-xl font-medium 
-                hover:bg-white hover:shadow-lg hover:scale-105 transition-all duration-300"
+                className="inline-flex items-center bg-white/90 backdrop-blur-sm text-blue-600 px-4 py-2 rounded-lg font-medium 
+                hover:bg-white hover:shadow-md hover:scale-105 transition-all duration-300"
               >
-                登录
-                <ArrowUpRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                登录账号
+                <ArrowUpRight className="ml-1 w-3 h-3 group-hover:translate-x-1 transition-transform" />
               </Link>
               <Link
                 to="/register"
-                className="inline-flex items-center bg-blue-500/90 backdrop-blur-sm text-white px-6 py-3 rounded-xl font-medium 
-                hover:bg-blue-500 hover:shadow-lg hover:scale-105 transition-all duration-300"
+                className="inline-flex items-center bg-blue-500/90 backdrop-blur-sm text-white px-4 py-2 rounded-lg font-medium 
+                hover:bg-blue-500 hover:shadow-md hover:scale-105 transition-all duration-300"
               >
-                注册
-                <ArrowUpRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                立即注册
+                <ArrowUpRight className="ml-1 w-3 h-3 group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
           )}
+          
         </div>
+      </div>
+
+      {/* 装饰性元素 */}
+      <div className="absolute bottom-0 right-0 transform translate-x-1/4 translate-y-1/4">
+        <div className="w-32 h-32 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-2xl" />
       </div>
     </div>
   );

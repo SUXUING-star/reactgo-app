@@ -6,7 +6,7 @@ import { zhCN } from 'date-fns/locale'
 import { useAuth } from '../context/AuthContext'
 import Sidebar from '../components/Sidebar'
 import AnimatedHeader from '../components/AnimatedHeader'
-import { Coffee, Plus } from 'lucide-react'
+import { Coffee, Plus, Hash } from 'lucide-react'
 // 加载骨架屏组件
 function LoadingSkeleton() {
   return (
@@ -38,10 +38,17 @@ const Home = () => {
       className="block bg-white rounded-xl shadow-sm hover:shadow-md transition-all transform hover:translate-y-[-2px]"
     >
       <div className="p-6">
-        <div className="flex items-center space-x-2 mb-4">
+        <div className="flex items-center gap-2 mb-4">
           <span className="px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
             {post?.category || '未分类'}
           </span>
+          {/* 添加话题标签 */}
+          {post?.topic_id && (
+            <span className="px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 flex items-center gap-1">
+              <Hash className="w-3 h-3" />
+              {post?.topic?.title || '未设置话题'}
+            </span>
+          )}
           <div className="flex-1 border-t border-gray-200"></div>
         </div>
         

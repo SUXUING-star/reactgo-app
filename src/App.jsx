@@ -10,6 +10,11 @@ import PostDetail from './pages/PostDetail'
 import Profile from './pages/Profile'
 import VerifyEmail from './pages/VerifyEmail'
 import EditPost from './pages/EditPost'
+import Discover from './pages/Discover'
+import Topics from './pages/Topics'
+import Ranking from './pages/Ranking'
+import Settings from './pages/Settings'
+import Messages from './pages/Messages';
 function App() {
   return (
     <AuthProvider>
@@ -26,6 +31,11 @@ function App() {
               <Route path="/profile" element={<Profile />} />
               <Route path="/verify-email" element={<VerifyEmail />} />
               <Route path="/edit-post/:id" element={<EditPost />} />
+              <Route path="/discover" element={<Discover />} />
+              <Route path="/topics" element={<Topics />} />
+              <Route path="/ranking" element={<Ranking />} />
+              <Route path="/messages" element={<Messages />} />
+              <Route path="/settings" element={<Settings />} />
             </Routes>
           </div>
         </div>
