@@ -57,28 +57,26 @@ const Home = () => {
         </h2>
         {/* 图片 */}
         {post?.imageURL && (
-            <div className="mb-6">
-              <img 
-                src={post.imageURL}  // 直接使用URL，因为现在所有图片都是完整的云存储URL
-                alt={post.title}
-                className="rounded-lg w-full max-h-[400px] object-contain mx-auto shadow-md hover:shadow-lg transition-shadow"
-                onError={(e) => {
-                  //console.error('Image load error:', post.imageURL);
-                  if (!e.target.dataset.retried) {
-                    // 如果是本地路径，尝试添加API URL前缀（用于向后兼容）
-                    if (post.imageURL.startsWith('/uploads/')) {
-                      e.target.src = `${import.meta.env.VITE_API_URL}${post.imageURL}`;
-                      e.target.dataset.retried = 'true';
-                    } else {
-                      e.target.style.display = 'none';
-                    }
-                  } else {
-                    e.target.style.display = 'none';
-                  }
-                }}
-              />
+          <div className="mb-6 overflow-hidden rounded-lg shadow-md hover:shadow-lg transition-shadow animate-image-zoom">
+                <img
+                src={post.imageURL}
+                    alt={post.title}
+                    className="w-full max-h-[300px] object-cover mx-auto transition-transform transform scale-100 hover:scale-105"
+                    onError={(e) => {
+                        if (!e.target.dataset.retried) {
+                            if (post.imageURL.startsWith('/uploads/')) {
+                                e.target.src = `${import.meta.env.VITE_API_URL}${post.imageURL}`;
+                                e.target.dataset.retried = 'true';
+                            } else {
+                                e.target.style.display = 'none';
+                            }
+                        } else {
+                            e.target.style.display = 'none';
+                        }
+                    }}
+                />
             </div>
-          )}
+        )}
         <p 
           className="text-gray-600 mb-4 whitespace-pre-wrap"
           dangerouslySetInnerHTML={{ 

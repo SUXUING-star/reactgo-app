@@ -73,3 +73,19 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+@keyframes wave {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.wave-slow {
+  animation: wave 8s linear infinite;
+}
