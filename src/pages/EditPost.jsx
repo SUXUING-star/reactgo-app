@@ -1,20 +1,23 @@
-// src/pages/EditPost.jsx
-import { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { Hash } from 'lucide-react';
 
 function EditPost() {
-  const { id } = useParams()
-  const navigate = useNavigate()
-  const { token, user } = useAuth()
-  
-  const [post, setPost] = useState(null)
-  const [title, setTitle] = useState('')
-  const [content, setContent] = useState('')
-  const [imageURL, setImageURL] = useState('')
-  const [newImage, setNewImage] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { token, user } = useAuth();
+
+  const [post, setPost] = useState(null);
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+  const [imageURL, setImageURL] = useState('');
+  const [newImage, setNewImage] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [topics, setTopics] = useState([]);
+  const [selectedTopic, setSelectedTopic] = useState(null);
+  const [newTopic, setNewTopic] = useState({ title: "", description: "" })
 
   // 获取原帖子内容
   useEffect(() => {
@@ -24,79 +27,122 @@ function EditPost() {
           headers: {
             'Authorization': `Bearer ${token}`
           }
-        })
-        const data = await response.json()
-        
+        });
+        const data = await response.json();
         if (!response.ok) {
-          throw new Error(data.error || '获取帖子失败')
+          throw new Error(data.error || '获取帖子失败');
         }
-
-        // 检查是否是帖子作者
         if (data.post.author_id !== user?.id) {
-          navigate(`/post/${id}`)
-          return
+          navigate(`/post/${id}`);
+          return;
         }
+        setPost(data.post);
+        setTitle(data.post.title);
+        setContent(data.post.content);
+        setImageURL(data.post.imageURL || '');
+         setSelectedTopic(data.post.topic_id)
 
-        setPost(data.post)
-        setTitle(data.post.title)
-        setContent(data.post.content)
-        setImageURL(data.post.imageURL || '')
       } catch (error) {
-        setError(error.message)
+        setError(error.message);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
+    const fetchTopics = async () => {
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/topics`, {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            });
+           if(response.ok){
+              const data = await response.json();
+              setTopics(data)
+           } else {
+             console.error('Failed to fetch topics')
+           }
+        } catch (error) {
+          console.error('Error fetching topics:', error);
+        }
+      };
 
-    fetchPost()
-  }, [id, token, user?.id, navigate])
+    fetchPost();
+      fetchTopics();
+  }, [id, token, user?.id, navigate]);
 
   // 处理图片上传
-  const handleImageChange = async (e) => {
-    const file = e.target.files[0]
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
     if (file) {
-      setNewImage(file)
+      setNewImage(file);
       // 创建本地预览URL
-      const previewURL = URL.createObjectURL(file)
-      setImageURL(previewURL)
+      const previewURL = URL.createObjectURL(file);
+      setImageURL(previewURL);
     }
-  }
+  };
 
   // 处理图片删除
   const handleDeleteImage = () => {
-    setImageURL('')
-    setNewImage(null)
-  }
-
-  // 提交更新
-  const handleSubmit = async (e) => {
+    setImageURL('');
+    setNewImage(null);
+  };
+  // 创建话题
+  const handleCreateTopic = async (e) => {
     e.preventDefault();
     try {
-        const updateData = {
-            title,
-            content,
-            imageURL: imageURL // Include imageURL in update
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/topics`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(newTopic),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to create topic');
+      }
+      const data = await response.json();
+      setTopics(prev => [...prev, data]);
+      setNewTopic({ title: "", description: "" })
+    } catch (error) {
+      console.error('Error creating topic:', error);
+      alert('创建话题失败，请重试');
+    }
+  };
+
+  // 提交更新
+ const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+       const updateData = {
+          title,
+           content,
+            imageURL,
+           topic_id: selectedTopic === "null" ? null : selectedTopic,  // 添加话题 ID
         };
-
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/posts/${id}`, {
-            method: 'PUT',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(updateData)
-        });
-
+       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/posts/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+           'Content-Type': 'application/json',
+         },
+         body: JSON.stringify(updateData)
+       });
         if (!response.ok) {
             throw new Error('Failed to update post');
         }
 
-        navigate(`/post/${id}`);
-    } catch (error) {
+         navigate(`/post/${id}`);
+      } catch (error) {
         console.error('Error updating post:', error);
         setError(error.message);
-    }
-};
+      }
+    };
+
+    const handleTopicChange = (e) => {
+      setSelectedTopic(e.target.value);
+  };
+
 
   if (loading) {
     return (
@@ -106,7 +152,7 @@ function EditPost() {
           <div className="h-64 bg-gray-200 rounded mb-4"></div>
         </div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -114,14 +160,14 @@ function EditPost() {
       <div className="container mx-auto px-4 py-8">
         <div className="text-red-500">{error}</div>
       </div>
-    )
+    );
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-2xl mx-auto">
         <h1 className="text-3xl font-bold mb-8">编辑帖子</h1>
-        
+
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
@@ -174,7 +220,7 @@ function EditPost() {
               />
               <button
                 type="button"
-                onClick={handleDeleteImage} // Now this matches the function name
+                onClick={handleDeleteImage}
                 className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -185,6 +231,39 @@ function EditPost() {
           )}
           </div>
 
+         <div>
+            <label htmlFor="topic" className="block text-sm font-medium text-gray-700 mb-1">
+                话题
+            </label>
+            <div className="flex items-center space-x-3 mb-2">
+                <select
+                    id="topic"
+                     value={selectedTopic || 'null'}
+                    onChange={handleTopicChange}
+                    className="w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                >
+                      <option value="null">无话题</option>
+                      {topics.map((topic) => (
+                          <option key={topic._id} value={topic._id}>{topic.title}</option>
+                      ))}
+                </select>
+              </div>
+             <div className="flex items-center space-x-2">
+               <input
+                    type="text"
+                    value={newTopic.title}
+                    onChange={(e) => setNewTopic({...newTopic, title: e.target.value})}
+                    placeholder="创建新话题"
+                      className="w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                  />
+                    <button
+                        onClick={handleCreateTopic}
+                        className="px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    >
+                       <Hash className="w-4 h-4" />
+                   </button>
+             </div>
+        </div>
           <div>
             <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">
               内容
@@ -217,7 +296,7 @@ function EditPost() {
         </form>
       </div>
     </div>
-  )
+  );
 }
 
-export default EditPost
+export default EditPost;

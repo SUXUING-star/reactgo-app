@@ -12,43 +12,6 @@ const AnimatedHeader = () => {
     weeklyGrowth: 0
   });
 
-  useEffect(() => {
-    fetchStats();
-  }, []);
-
-  const fetchStats = async () => {
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/stats`);
-      const data = await response.json();
-      setStats(data);
-    } catch (error) {
-      console.error('Error fetching stats:', error);
-    }
-  };
-
-  const statsItems = [
-    { 
-      icon: <Sparkles className="w-4 h-4" />, 
-      label: '今日热门', 
-      value: `${stats.hotTopics} 个讨论` 
-    },
-    { 
-      icon: <Users className="w-4 h-4" />, 
-      label: '社区成员', 
-      value: `${stats.userCount.toLocaleString()} 人` 
-    },
-    { 
-      icon: <MessageSquare className="w-4 h-4" />, 
-      label: '活跃讨论', 
-      value: `${stats.activeDiscussions} 个话题` 
-    },
-    { 
-      icon: <TrendingUp className="w-4 h-4" />, 
-      label: '周增长', 
-      value: `${stats.weeklyGrowth > 0 ? '+' : ''}${stats.weeklyGrowth.toFixed(1)}%` 
-    },
-  ];
-
   return (
     <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 rounded-xl shadow-lg p-6 mb-2">
       {/* 动态背景 */}
