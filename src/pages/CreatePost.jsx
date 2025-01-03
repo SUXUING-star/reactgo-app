@@ -16,8 +16,7 @@ function CreatePost() {
     const [topics, setTopics] = useState([]);
     const [selectedTopic, setSelectedTopic] = useState('');
 
-    const categories = ['技术', '生活', '问答', '分享'];
-    
+    const categories = ['讨论', '问答', '分享', '建议', '其他'];    
      useEffect(() => {
          const fetchTopics = async () => {
            try {

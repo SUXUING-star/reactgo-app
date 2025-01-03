@@ -1,195 +1,356 @@
-// src/pages/Home.jsx
-import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { formatDistance } from 'date-fns'
-import { zhCN } from 'date-fns/locale'
-import { useAuth } from '../context/AuthContext'
-import Sidebar from '../components/Sidebar'
-import AnimatedHeader from '../components/AnimatedHeader'
-import { Coffee, Plus, Hash } from 'lucide-react'
-// 加载骨架屏组件
-function LoadingSkeleton() {
+import React, { useState, useEffect, useCallback } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { formatDistance } from 'date-fns';
+import { zhCN } from 'date-fns/locale';
+import { useAuth } from '../context/AuthContext';
+import Sidebar from '../components/Sidebar';
+import AnimatedHeader from '../components/AnimatedHeader';
+import { Coffee, Plus, Hash, Filter, ChevronLeft, ChevronRight, MessageSquare } from 'lucide-react';
+import LoadingSkeleton from "../components/LoadingSkeleton";
+import LazyImage from '../components/LazyImage';
+
+// 分页控件组件
+const Pagination = ({ currentPage, totalPages, onPageChange }) => {
   return (
-    <div className="space-y-6">
-      <div className="bg-white rounded-xl p-6 animate-pulse">
-        <div className="h-4 bg-gray-200 rounded w-1/4 mb-4"></div>
-        <div className="h-8 bg-gray-200 rounded w-3/4 mb-4"></div>
-        <div className="space-y-3">
-          <div className="h-4 bg-gray-200 rounded"></div>
-          <div className="h-4 bg-gray-200 rounded"></div>
+    <div className="flex items-center justify-center space-x-2 mt-8">
+      <button
+        onClick={() => onPageChange(currentPage - 1)}
+        disabled={currentPage === 1}
+        className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-50"
+      >
+        <ChevronLeft className="w-5 h-5" />
+      </button>
+      
+      <span className="px-4 py-2 text-sm text-gray-700">
+        第 {currentPage} 页，共 {totalPages} 页
+      </span>
+
+      <button
+        onClick={() => onPageChange(currentPage + 1)}
+        disabled={currentPage === totalPages}
+        className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-50"
+      >
+        <ChevronRight className="w-5 h-5" />
+      </button>
+    </div>
+  );
+};
+
+// 筛选器组件
+const FilterPanel = ({ categories, topics, activeCategory, activeTopic, onCategoryChange, onTopicChange }) => {
+  return (
+    <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
+      <div className="flex items-center mb-4">
+        <Filter className="w-5 h-5 text-gray-500 mr-2" />
+        <h3 className="text-lg font-semibold">筛选</h3>
+      </div>
+      
+      {/* 分类筛选 */}
+      <div className="mb-4">
+        <h4 className="text-sm font-medium text-gray-700 mb-2">分类</h4>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => onCategoryChange(null)}
+            className={`px-3 py-1 rounded-full text-sm ${
+              !activeCategory
+                ? 'bg-blue-100 text-blue-800'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            全部
+          </button>
+          {categories.map(category => (
+            <button
+              key={category}
+              onClick={() => onCategoryChange(category)}
+              className={`px-3 py-1 rounded-full text-sm ${
+                activeCategory === category
+                  ? 'bg-blue-100 text-blue-800'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* 话题筛选 */}
+      <div>
+        <h4 className="text-sm font-medium text-gray-700 mb-2">话题</h4>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => onTopicChange(null)}
+            className={`px-3 py-1 rounded-full text-sm ${
+              !activeTopic
+                ? 'bg-green-100 text-green-800'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            全部
+          </button>
+          {topics.map(topic => (
+            <button
+              key={topic._id}
+              onClick={() => onTopicChange(topic._id)}
+              className={`px-3 py-1 rounded-full text-sm ${
+                activeTopic === topic._id
+                  ? 'bg-green-100 text-green-800'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              {topic.title}
+            </button>
+          ))}
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
 const Home = () => {
-  const [posts, setPosts] = useState([]) // 确保初始值为空数组而不是 null
-  const [comments, setComments] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const { isAuthenticated, token } = useAuth()
-  const navigate = useNavigate()
-  // 渲染帖子列表项
-  const renderPostItem = (post, index) => (
-    <Link
-      key={post?._id || `post-${index}`}
-      to={`/post/${post?._id}`}
-      className="block bg-white rounded-xl shadow-sm hover:shadow-md transition-all transform hover:translate-y-[-2px]"
-    >
-      <div className="p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <span className="px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-            {post?.category || '未分类'}
-          </span>
-          {/* 添加话题标签 */}
-          {post?.topic_id && (
-            <span className="px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 flex items-center gap-1">
-              <Hash className="w-3 h-3" />
-              {post?.topic?.title || '无话题'}
-            </span>
-          )}
-          <div className="flex-1 border-t border-gray-200"></div>
-        </div>
-        
-        <h2 className="text-2xl font-bold mb-3 text-gray-900 group-hover:text-blue-600">
-          {post?.title || '无标题'}
-        </h2>
-        {/* 图片 */}
-        {post?.imageURL && (
-          <div className="mb-6 overflow-hidden rounded-lg shadow-md hover:shadow-lg transition-shadow animate-image-zoom">
-                <img
-                src={post.imageURL}
-                    alt={post.title}
-                    className="w-full max-h-[300px] object-cover mx-auto transition-transform transform scale-100 hover:scale-105"
-                    onError={(e) => {
-                        if (!e.target.dataset.retried) {
-                            if (post.imageURL.startsWith('/uploads/')) {
-                                e.target.src = `${import.meta.env.VITE_API_URL}${post.imageURL}`;
-                                e.target.dataset.retried = 'true';
-                            } else {
-                                e.target.style.display = 'none';
-                            }
-                        } else {
-                            e.target.style.display = 'none';
-                        }
-                    }}
-                />
-            </div>
-        )}
-        <p 
-          className="text-gray-600 mb-4 whitespace-pre-wrap"
-          dangerouslySetInnerHTML={{ 
-            __html: post?.content || '暂无内容'
-          }}
-        />
-        
-        <div className="flex items-center">
-          <img
-            src={`https://api.dicebear.com/7.x/initials/svg?seed=${post?.author || 'anonymous'}`}
-            alt=""
-            className="w-8 h-8 rounded-full"
-          />
-          <div className="ml-3">
-            <p className="text-sm font-medium text-gray-900">
-              {post?.author || '匿名用户'}
-            </p>
-            <p className="text-sm text-gray-500">
-              {post?.created_at ? 
-                formatDistance(new Date(post.created_at), new Date(), {
-                  addSuffix: true,
-                  locale: zhCN,
-                })
-                : '未知时间'
-              }
-            </p>
-          </div>
-        </div>
-      </div>
-    </Link>
-  )
-  useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        if (!token) {
-          navigate('/login')
-          return
-        }
+    const [searchParams, setSearchParams] = useSearchParams();
+    const [posts, setPosts] = useState([]);
+    const [comments, setComments] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const { isAuthenticated, token } = useAuth();
+    const navigate = useNavigate();
 
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/posts`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
+    // 分页状态
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const pageSize = 10;
+    
+    // 筛选状态
+    const [categories, setCategories] = useState([]);
+    const [topics, setTopics] = useState([]);
+    const [activeCategory, setActiveCategory] = useState(null);
+    const [activeTopic, setActiveTopic] = useState(null);
+
+    // 获取所有话题
+    useEffect(() => {
+      const fetchTopics = async () => {
+        try {
+          const response = await fetch(`${import.meta.env.VITE_API_URL}/api/topics`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          if (response.ok) {
+            const data = await response.json();
+            setTopics(data);
           }
-        })
-
-        if (response.status === 403) {
-          localStorage.removeItem('token')
-          navigate('/login')
-          return
+        } catch (error) {
+          console.error('Error fetching topics:', error);
         }
+      };
+      fetchTopics();
+    }, [token]);
+    
+    // 获取所有分类
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/categories`, {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+            });
+              if (response.ok) {
+                const data = await response.json();
+                setCategories(data);
+            }
+         } catch (error) {
+                console.error('Error fetching categories:', error);
+            }
+        };
+        fetchCategories();
+    }, [token]);
 
-        const data = await response.json()
-        setPosts(data || []) // 确保设置空数组而不是 null
-      } catch (err) {
-        setError(err.message)
-        console.error('Error fetching posts:', err)
-        setPosts([]) // 发生错误时设置为空数组
-      } finally {
-        setLoading(false)
+    // 获取帖子列表
+    useEffect(() => {
+        const fetchPosts = async () => {
+            try {
+                if (!token) {
+                   navigate('/login');
+                    return;
+                }
+                const queryParams = new URLSearchParams({
+                    page: currentPage,
+                    pageSize,
+                     ...(activeCategory && { category: activeCategory }),
+                      ...(activeTopic && { topic_id: activeTopic }),
+                 });
+
+               const response = await fetch(
+                    `${import.meta.env.VITE_API_URL}/api/posts?${queryParams}`,
+                    {
+                       headers: {
+                            Authorization: `Bearer ${token}`,
+                          },
+                    }
+                );
+               if (response.status === 403) {
+                    localStorage.removeItem('token');
+                   navigate('/login');
+                   return;
+                }
+                const data = await response.json();
+                setPosts(data.posts || []);
+                setTotalPages(Math.ceil(data.total / pageSize));
+            } catch (err) {
+                setError(err.message);
+                console.error('Error fetching posts:', err);
+                 setPosts([]);
+            } finally {
+                setLoading(false);
+           }
+        };
+         fetchPosts();
+    }, [token, navigate, currentPage, activeCategory, activeTopic]);
+
+    // 处理分页改变
+   const handlePageChange = (newPage) => {
+      if (newPage >= 1 && newPage <= totalPages) {
+           setCurrentPage(newPage);
+            setSearchParams({ page: newPage.toString() });
       }
-    }
+    };
 
-    fetchPosts()
-  }, [token, navigate])
-return (
-  <div className="container mx-auto px-4 py-8">
-    <AnimatedHeader />
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-      <div className="md:col-span-2 space-y-6">
-        {loading ? (
-          <LoadingSkeleton />
-        ) : error ? (
-          <div className="text-red-500">{error}</div>
-        ) : (
-          <div className="space-y-6">
-            {posts?.length > 0 ? (
-              posts.map(renderPostItem)
-            ) : (
-              <div className="bg-white rounded-xl shadow-sm p-8 text-center">
-                <div className="flex flex-col items-center justify-center space-y-4">
-                  {/* 使用 Coffee 图标表示空状态 */}
-                  <div className="w-16 h-16 text-gray-300 mb-4">
-                    <Coffee className="w-full h-full animate-bounce-slow" />
-                  </div>
-                  <h3 className="text-xl font-medium text-gray-900">
-                    暂无帖子
-                  </h3>
-                  <p className="text-gray-500 max-w-sm mx-auto">
-                    来发布第一篇帖子，分享你的想法和经验吧！
-                  </p>
-                  {isAuthenticated && (
-                    <Link
-                      to="/create-post"
-                      className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                    >
-                      <Plus className="w-5 h-5 mr-2" />
-                      发布新帖子
-                    </Link>
-                  )}
+   // 处理筛选改变
+   const handleCategoryChange = useCallback((category) => {
+       setActiveCategory(category);
+        setCurrentPage(1);
+    }, []);
+   const handleTopicChange = useCallback((topicId) => {
+       setActiveTopic(topicId);
+       setCurrentPage(1);
+    }, []);
+    const renderPostItem = (post, index) => (
+        <Link
+            key={post?._id || `post-${index}`}
+            to={`/post/${post?._id}`}
+            className="block bg-white rounded-xl shadow-md hover:shadow-lg transition-all transform hover:translate-y-[-2px] overflow-hidden group"
+        >
+            {/* 图片容器 */}
+            <LazyImage
+                src={post?.imageURL}
+                alt={post.title}
+                className="aspect-[16/9] group-hover:scale-105"
+                 defaultHeight="h-48"
+             />
+
+          <div className="p-4 flex-1 flex flex-col">
+            <div className="flex flex-wrap gap-2 mb-3">
+                 <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                     {post?.category || '未分类'}
+                   </span>
+                    {post?.topic_id && (
+                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 flex items-center gap-1">
+                            <Hash className="w-3 h-3" />
+                            {post?.topic?.title || '话题'}
+                        </span>
+                    )}
+            </div>
+            
+            <h2 className="text-lg font-bold mb-2 text-gray-900 line-clamp-2 group-hover:text-blue-600">
+                {post.title}
+              </h2>
+            <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+                {post.content?.replace(/<[^>]*>/g, '')}
+              </p>
+           <div className="flex items-center mt-auto pt-3 border-t border-gray-100">
+                  <img
+                      src={`https://api.dicebear.com/7.x/initials/svg?seed=${post.author}`}
+                        alt=""
+                        className="w-6 h-6 rounded-full"
+                       />
+                       <div className="ml-2 flex-1">
+                           <p className="text-sm font-medium text-gray-900">{post.author}</p>
+                            <p className="text-xs text-gray-500">
+                                 {formatDistance(new Date(post.created_at), new Date(), {
+                                     addSuffix: true,
+                                      locale: zhCN,
+                                    })}
+                             </p>
+                         </div>
+                       <div className="flex items-center text-gray-500 text-sm">
+                            <MessageSquare className="w-4 h-4 mr-1" />
+                              <span>{post.comments_count || 0}</span>
+                        </div>
+                 </div>
+            </div>
+        </Link>
+    );
+  return (
+    <div className="relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-100 via-blue-50 to-gray-100 opacity-70 z-0"></div>
+          <div className="container mx-auto px-4 py-8 relative z-10">
+                <AnimatedHeader />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  <div className="md:col-span-2">
+                    <FilterPanel
+                        categories={categories}
+                         topics={topics}
+                        activeCategory={activeCategory}
+                        activeTopic={activeTopic}
+                       onCategoryChange={handleCategoryChange}
+                         onTopicChange={handleTopicChange}
+                    />
+                    {loading ? (
+                         <LoadingSkeleton />
+                      ) : error ? (
+                          <div className="text-red-500">{error}</div>
+                       ) : (
+                          <>
+                             <div className="space-y-6">
+                                  {posts?.length > 0 ? (
+                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                       {posts.map(renderPostItem)}
+                                    </div>
+                                      ) : (
+                                         <div className="bg-white rounded-xl shadow-sm p-8 text-center animate-fade-in">
+                                               <div className="flex flex-col items-center justify-center space-y-4">
+                                                   <div className="w-16 h-16 text-gray-300 mb-4">
+                                                         <Coffee className="w-full h-full animate-bounce-slow" />
+                                                  </div>
+                                                    <h3 className="text-xl font-medium text-gray-900">
+                                                        暂无帖子
+                                                   </h3>
+                                                  <p className="text-gray-500 max-w-sm mx-auto">
+                                                       来发布第一篇帖子，分享你的想法和经验吧！
+                                                     </p>
+                                                    {isAuthenticated && (
+                                                      <Link
+                                                        to="/create-post"
+                                                        className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                                          >
+                                                            <Plus className="w-5 h-5 mr-2" />
+                                                            发布新帖子
+                                                         </Link>
+                                                    )}
+                                              </div>
+                                          </div>
+                                      )}
+                                 </div>
+                                  {posts.length > 0 && (
+                                     <Pagination
+                                          currentPage={currentPage}
+                                          totalPages={totalPages}
+                                         onPageChange={handlePageChange}
+                                    />
+                                 )}
+                             </>
+                       )}
+                   </div>
+                    <div className="hidden md:block">
+                      <Sidebar totalPosts={posts?.length || 0} latestComments={comments} />
+                    </div>
                 </div>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      <div className="hidden md:block">
-        <Sidebar totalPosts={posts?.length || 0} latestComments={comments} />
-      </div>
-    </div>
-  </div>
-)
-}
+           </div>
+        </div>
+    );
+};
 
 export default Home
-
