@@ -89,7 +89,7 @@ function Navbar() {
                 />
               </div>
               <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 text-transparent bg-clip-text">
-                茶会
+                星云茶会
               </span>
             </Link>
 
