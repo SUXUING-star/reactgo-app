@@ -66,3 +66,24 @@
       transform: translateY(0);
     }
   }
+/* 可以添加到你的全局样式中 */
+@keyframes slideInDown {
+  from {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.preview-enter {
+  animation: slideInDown 0.2s ease-out;
+}
+/* 在你的全局样式文件中添加 */
+.transform-gpu {
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}

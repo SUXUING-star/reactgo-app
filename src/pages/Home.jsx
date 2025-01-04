@@ -1,3 +1,4 @@
+// src/pages/Home.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { formatDistance } from 'date-fns';
@@ -8,6 +9,7 @@ import AnimatedHeader from '../components/AnimatedHeader';
 import { Coffee, Plus, Hash, Filter, ChevronLeft, ChevronRight, MessageSquare } from 'lucide-react';
 import LoadingSkeleton from "../components/LoadingSkeleton";
 import LazyImage from '../components/LazyImage';
+import PostPreview from '../components/PostPreview';
 
 // 分页控件组件
 const Pagination = ({ currentPage, totalPages, onPageChange }) => {
@@ -172,10 +174,6 @@ const Home = () => {
     useEffect(() => {
         const fetchPosts = async () => {
             try {
-                if (!token) {
-                   navigate('/login');
-                    return;
-                }
                 const queryParams = new URLSearchParams({
                     page: currentPage,
                     pageSize,
@@ -228,60 +226,61 @@ const Home = () => {
        setCurrentPage(1);
     }, []);
     const renderPostItem = (post, index) => (
-        <Link
-            key={post?._id || `post-${index}`}
-            to={`/post/${post?._id}`}
-            className="block bg-white rounded-xl shadow-md hover:shadow-lg transition-all transform hover:translate-y-[-2px] overflow-hidden group"
-        >
-            {/* 图片容器 */}
-            <LazyImage
-                src={post?.imageURL}
-                alt={post.title}
-                className="aspect-[16/9] group-hover:scale-105"
-                 defaultHeight="h-48"
-             />
+        <PostPreview key={post?._id || `post-${index}`} post={post}>
+            <Link
+                to={`/post/${post?._id}`}
+                className="block bg-white rounded-xl shadow-md hover:shadow-lg transition-all transform hover:translate-y-[-2px] overflow-hidden group"
+            >
+                {/* 图片容器 */}
+                <LazyImage
+                    src={post?.imageURL}
+                    alt={post.title}
+                    className="aspect-[16/9] group-hover:scale-105"
+                    defaultHeight="h-48"
+                />
 
-          <div className="p-4 flex-1 flex flex-col">
-            <div className="flex flex-wrap gap-2 mb-3">
-                 <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                     {post?.category || '未分类'}
-                   </span>
-                    {post?.topic_id && (
-                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 flex items-center gap-1">
-                            <Hash className="w-3 h-3" />
-                            {post?.topic?.title || '话题'}
+                <div className="p-4 flex-1 flex flex-col">
+                    <div className="flex flex-wrap gap-2 mb-3">
+                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            {post?.category || '未分类'}
                         </span>
-                    )}
-            </div>
-            
-            <h2 className="text-lg font-bold mb-2 text-gray-900 line-clamp-2 group-hover:text-blue-600">
-                {post.title}
-              </h2>
-            <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                {post.content?.replace(/<[^>]*>/g, '')}
-              </p>
-           <div className="flex items-center mt-auto pt-3 border-t border-gray-100">
-                  <img
-                      src={`https://api.dicebear.com/7.x/initials/svg?seed=${post.author}`}
-                        alt=""
-                        className="w-6 h-6 rounded-full"
-                       />
-                       <div className="ml-2 flex-1">
-                           <p className="text-sm font-medium text-gray-900">{post.author}</p>
+                            {post?.topic_id && (
+                                <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 flex items-center gap-1">
+                                    <Hash className="w-3 h-3" />
+                                    {post?.topic?.title || '话题'}
+                                </span>
+                            )}
+                    </div>
+                    
+                    <h2 className="text-lg font-bold mb-2 text-gray-900 line-clamp-2 group-hover:text-blue-600">
+                        {post.title}
+                    </h2>
+                    <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+                        {post.content?.replace(/<[^>]*>/g, '')}
+                    </p>
+                <div className="flex items-center mt-auto pt-3 border-t border-gray-100">
+                        <img
+                            src={`https://api.dicebear.com/7.x/initials/svg?seed=${post.author}`}
+                            alt=""
+                            className="w-6 h-6 rounded-full"
+                        />
+                        <div className="ml-2 flex-1">
+                            <p className="text-sm font-medium text-gray-900">{post.author}</p>
                             <p className="text-xs text-gray-500">
-                                 {formatDistance(new Date(post.created_at), new Date(), {
-                                     addSuffix: true,
-                                      locale: zhCN,
-                                    })}
-                             </p>
-                         </div>
-                       <div className="flex items-center text-gray-500 text-sm">
-                            <MessageSquare className="w-4 h-4 mr-1" />
-                              <span>{post.comments_count || 0}</span>
+                                {formatDistance(new Date(post.created_at), new Date(), {
+                                    addSuffix: true,
+                                    locale: zhCN,
+                                })}
+                            </p>
                         </div>
-                 </div>
-            </div>
-        </Link>
+                    <div className="flex items-center text-gray-500 text-sm">
+                            <MessageSquare className="w-4 h-4 mr-1" />
+                                <span>{post.comments_count || 0}</span>
+                        </div>
+                </div>
+                </div>
+            </Link>
+        </PostPreview>
     );
   return (
     <div className="relative overflow-hidden">

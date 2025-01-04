@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { ArrowUpRight, MessageSquare, TrendingUp, Users, Bell } from 'lucide-react';
 import { formatDistance } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
-
+import SearchBar from './SearchBar';
 const Sidebar = () => {
   const { isAuthenticated, token } = useAuth();
   const [latestComments, setLatestComments] = useState([]);
@@ -52,6 +52,10 @@ const Sidebar = () => {
   
   return (
     <div className="space-y-6">
+      {/* 搜索栏 */}
+      <div className="mb-6">
+        <SearchBar variant="sidebar" />
+      </div>
       {/* 发布新帖子部分 */}
       {isAuthenticated && (
         <Link

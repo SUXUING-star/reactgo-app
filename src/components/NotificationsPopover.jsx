@@ -1,3 +1,4 @@
+// components/NotificationsPopover.jsx
 import React, { useState, useEffect } from 'react';
 import { Bell, MessageSquare, ThumbsUp } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';

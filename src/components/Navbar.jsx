@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import { Search, Bell, MessageCircle, Menu, X } from 'lucide-react'
 import NotificationsPopover from './NotificationsPopover'
 import MessagesPopover from './MessagesPopover'
-
+import SearchBar from './SearchBar'
 function Navbar() {
   const { isAuthenticated, user, logout } = useAuth()
   const location = useLocation()
@@ -59,17 +59,7 @@ function Navbar() {
 
           {/* 中间搜索框 */}
           <div className="hidden md:flex flex-1 items-center justify-center px-6">
-            <div className="relative w-full max-w-lg">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="搜索内容..."
-                className="w-full px-4 py-2 pl-10 text-sm border border-gray-300 rounded-full 
-                focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-              />
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-            </div>
+            <SearchBar />
           </div>
 
           {/* 右侧用户区域 */}
