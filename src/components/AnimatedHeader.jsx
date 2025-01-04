@@ -1,17 +1,59 @@
-//src/components/AnimatedHeader.jsx
-import React, { useState, useEffect } from 'react';
+// src/components/AnimatedHeader.jsx
+import React, { useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowUpRight, Coffee, Sparkles, Users, MessageSquare, TrendingUp } from 'lucide-react';
+import { ArrowUpRight, Coffee, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import anime from 'animejs';
 
 const AnimatedHeader = () => {
   const { isAuthenticated } = useAuth();
-  const [stats, setStats] = useState({
-    hotTopics: 0,
-    userCount: 0,
-    activeDiscussions: 0,
-    weeklyGrowth: 0
-  });
+  const titleRef = useRef(null);
+  const descRef = useRef(null);
+
+  useEffect(() => {
+    // 为标题文字创建包裹元素
+    const title = titleRef.current;
+    const titleText = title.textContent;
+    title.innerHTML = '';
+    
+    // 为每个字符创建 span
+    titleText.split('').forEach((char) => {
+      const span = document.createElement('span');
+      span.textContent = char;
+      span.style.opacity = '0';
+      span.style.display = 'inline-block';
+      title.appendChild(span);
+    });
+
+    // 标题动画
+    const titleAnimation = anime.timeline({
+      easing: 'easeOutExpo'
+    }).add({
+      targets: titleRef.current.querySelectorAll('span'),
+      opacity: [0, 1],
+      translateY: [-20, 0],
+      rotate: [-10, 0],
+      delay: anime.stagger(80),
+      duration: 800
+    });
+
+    // 描述文字动画
+    const descAnimation = anime.timeline({
+      easing: 'easeOutExpo'
+    }).add({
+      targets: descRef.current,
+      opacity: [0, 1],
+      translateY: [20, 0],
+      delay: 800, // 等标题动画完成后开始
+      duration: 1000
+    });
+
+    // 清理函数
+    return () => {
+      titleAnimation.pause();
+      descAnimation.pause();
+    };
+  }, []);
 
   return (
     <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 rounded-xl shadow-lg p-6 mb-2">
@@ -31,13 +73,19 @@ const AnimatedHeader = () => {
         
         <div className="max-w-3xl space-y-4">
           <div className="space-y-2">
-            <h1 className="text-3xl font-bold text-white animate-fade-in">
-              欢迎来到星云茶会
-              <span className="inline-block animate-wave ml-1">~</span>
+            <h1 
+              ref={titleRef}
+              className="text-3xl font-bold text-white"
+            >
+              欢迎来到茶会
             </h1>
             
-            <p className="text-base text-blue-100 animate-fade-in-delayed leading-relaxed">
+            <p 
+              ref={descRef}
+              className="text-base text-blue-100 leading-relaxed opacity-0"
+            >
               在这里，每一个想法都值得分享，每一次对话都可能激发灵感。
+              加入我们的社区，与志同道合的朋友一起探讨、成长、创造。
             </p>
           </div>
 
@@ -61,7 +109,6 @@ const AnimatedHeader = () => {
               </Link>
             </div>
           )}
-          
         </div>
       </div>
 

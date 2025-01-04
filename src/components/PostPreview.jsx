@@ -8,6 +8,17 @@ const PostPreview = ({ post, children, variant = 'default' }) => {
   const [showPreview, setShowPreview] = useState(false);
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(false);
+  // 为通知预览添加特殊样式
+  const getPreviewStyles = () => {
+    switch(variant) {
+      case 'notification':
+        return 'left-full ml-2 top-0';
+      case 'search':
+        return 'bottom-0 right-0 translate-y-2';
+      default:
+        return 'bottom-0 right-0 translate-y-2';
+    }
+  };
 
   // 获取评论数据
   useEffect(() => {
@@ -52,11 +63,10 @@ const PostPreview = ({ post, children, variant = 'default' }) => {
       {children}
 
       {showPreview && (
-        <div className={`absolute bottom-0 right-0 w-64 bg-white rounded-lg shadow-xl
+        <div 
+        className={`absolute bottom-0 right-0 bg-white rounded-lg shadow-xl
           border border-gray-100 z-50 ${variant === 'search' ? 'w-56' : 'w-64'}
-          transform translate-x-2 translate-y-2 opacity-0 scale-95
-          group-hover:opacity-100 group-hover:scale-100
-          transition-all duration-200 ease-out`}
+          animate-preview-popup`}
         >
           {variant === 'search' ? (
           <div className="p-3">

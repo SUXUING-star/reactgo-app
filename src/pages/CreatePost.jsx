@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Hash } from 'lucide-react';
+import anime from 'animejs';
 
 function CreatePost() {
     const [title, setTitle] = useState('');
@@ -16,8 +17,9 @@ function CreatePost() {
     const [topics, setTopics] = useState([]);
     const [selectedTopic, setSelectedTopic] = useState('');
 
-    const categories = ['讨论', '问答', '分享', '建议', '其他'];    
-     useEffect(() => {
+    const categories = ['讨论', '问答', '分享', '建议', '其他'];
+
+    useEffect(() => {
          const fetchTopics = async () => {
            try {
                 const response = await fetch(`${import.meta.env.VITE_API_URL}/api/topics`, {
@@ -34,6 +36,46 @@ function CreatePost() {
        };
         fetchTopics();
     }, [token]);
+
+
+      // 动画效果
+    useEffect(() => {
+        // 整体表单容器动画
+      anime({
+        targets: '.post-form-container',
+        translateY: [20, 0],
+        opacity: [0, 1],
+        duration: 800,
+        easing: 'easeOutExpo'
+      });
+      // 表单元素动画
+      anime({
+        targets: '.form-element',
+        translateX: [-20, 0],
+        opacity: [0, 1],
+        delay: anime.stagger(100),
+        duration: 600,
+        easing: 'easeOutCubic'
+       });
+       // 右侧指南区域动画
+        anime({
+          targets: '.guide-section',
+           translateX: [100, 0],
+          opacity: [0, 1],
+            duration: 800,
+           delay: 300,
+           easing: 'easeOutQuad'
+        });
+      // 按钮动画
+      anime({
+         targets: '.action-button',
+           scale: [0.9, 1],
+           opacity: [0, 1],
+           delay: anime.stagger(150, {start: 500}),
+           duration: 600,
+         easing: 'easeOutElastic(1, .8)'
+      });
+    }, []);
 
     const handleImageChange = useCallback((e) => {
       const file = e.target.files[0];
@@ -121,15 +163,15 @@ function CreatePost() {
         }
     };
 
+
    return (
         <div className="w-full grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* 主要内容区 */}
-            <div className="lg:col-span-2">
+             {/* 主要内容区 */}
+             <div className="lg:col-span-2 post-form-container opacity-0">
                 <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-                    <div className="p-6">
+                   <div className="p-6">
                        <h1 className="text-2xl font-bold text-gray-900 mb-6">发布新帖子</h1>
-                        
-                        {error && (
+                      {error && (
                             <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4">
                                 <div className="flex">
                                     <div className="flex-shrink-0">
@@ -145,7 +187,7 @@ function CreatePost() {
                         )}
 
                         <form onSubmit={handleSubmit} className="space-y-6">
-                            <div>
+                            <div className="form-element opacity-0">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                   标题
                                 </label>
@@ -161,7 +203,7 @@ function CreatePost() {
                                 />
                              </div>
 
-                            <div>
+                            <div className="form-element opacity-0">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     分类
                                 </label>
@@ -177,7 +219,7 @@ function CreatePost() {
                                     ))}
                                  </select>
                             </div>
-                          <div>
+                          <div className="form-element opacity-0">
                              <label className="block text-sm font-medium text-gray-700 mb-2">
                                 话题（可选）
                                 </label>
@@ -202,24 +244,24 @@ function CreatePost() {
                                    </Link>
                             </div>
                            </div>
-                            <div>
+                            <div className="form-element opacity-0">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                  内容
                                   </label>
                                   <textarea
                                      value={content}
-                                     onChange={(e) => {
-                                       const formattedContent = e.target.value.replace(/\n/g, '<br>')
-                                      setContent(formattedContent)
-                                   }}
+                                    onChange={(e) => {
+                                     const formattedContent = e.target.value.replace(/\n/g, '<br>')
+                                     setContent(formattedContent)
+                                    }}
                                     rows={12}
                                     className="block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm whitespace-pre-wrap"
-                                   required
+                                    required
                                     minLength={10}
                                     placeholder="请输入内容（至少10字）"
                                 />
                             </div>
-                          <div>
+                          <div className="form-element opacity-0">
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                图片（可选）
                             </label>
@@ -286,14 +328,14 @@ function CreatePost() {
                            <button
                                 type="button"
                                  onClick={() => navigate('/')}
-                                 className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                 className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 action-button opacity-0"
                             >
                               取消
                             </button>
                              <button
                                 type="submit"
                                  disabled={loading}
-                                   className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                                   className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 action-button opacity-0"
                                >
                                   {loading && (
                                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
@@ -309,12 +351,12 @@ function CreatePost() {
                               </button>
                         </div>
                   </form>
+                </div>
               </div>
-          </div>
-     </div>
+         </div>
 
-            {/* 右侧指南区域 */}
-            <div className="lg:col-span-1">
+          {/* 右侧指南区域 */}
+            <div className="lg:col-span-1 guide-section opacity-0">
                 <div className="bg-white rounded-xl shadow-sm">
                     <div className="bg-gradient-to-r from-blue-50 to-blue-100 px-6 py-4 border-b border-blue-200">
                         <h2 className="text-lg font-semibold text-blue-900">发帖指南</h2>
@@ -368,4 +410,5 @@ function CreatePost() {
         </div>
     );
 }
+
 export default CreatePost;
