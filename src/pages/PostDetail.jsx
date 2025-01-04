@@ -144,27 +144,57 @@ function PostDetail() {
       </div>
      );
     }
-     const handleLike = async (commentId) => {
-       if (!isAuthenticated) {
-         alert('请先登录')
-          return
-        }
-        try {
-           const response = await fetch(
-                `${import.meta.env.VITE_API_URL}/api/comments/${commentId}/like`,
-              {
-                 method: 'POST',
-                   headers: {
-                    Authorization: `Bearer ${token}`,
-                     },
-                }
-          );
-        if (response.ok) {
-            await fetchPost();
-        }
-      } catch (error) {
-         console.error('Error liking comment:', error)
+     // 点赞处理函数
+    const handleLike = async (commentId) => {
+  if (!isAuthenticated) {
+    alert('请先登录');
+    return;
+  }
+
+  // 检查是否已经点赞过
+  const comment = findComment(commentId);
+  if (comment && comment.likes?.includes(user?.id)) {
+    alert('您已经点赞过了');
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/comments/${commentId}/like`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       }
+    );
+    if (response.ok) {
+      await fetchPost();
+    } else {
+      const data = await response.json();
+      if (data.error === 'Already liked') {
+        alert('您已经点赞过了');
+      }
+    }
+  } catch (error) {
+    console.error('Error liking comment:', error);
+  }
+    };
+
+    // 查找评论或回复的辅助函数
+    const findComment = (commentId) => {
+  // 在主评论中查找
+  let comment = commentsList.find(c => c._id === commentId);
+  if (comment) return comment;
+
+  // 在回复中查找
+  for (const mainComment of commentsList) {
+    if (mainComment.replies) {
+      const reply = mainComment.replies.find(r => r._id === commentId);
+      if (reply) return reply;
+    }
+  }
+  return null;
     };
     const handleUnlike = async (commentId) => {
      try {
@@ -291,8 +321,84 @@ function PostDetail() {
                   <div className="text-gray-700 whitespace-pre-wrap">
                       {comment.content}
                    </div>
-                  {/* 回复框 */}
-                  {replyingTo === comment._id && (
+                  
+           </div>
+
+              {/* 回复列表 */}
+              {comment.replies && comment.replies.length > 0 && (
+                <div className="ml-8 mt-2 space-y-3 border-l-2 border-blue-100">
+                  {comment.replies.map((reply) => (
+                    <div key={reply._id} className="pl-4 pt-2">
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center text-sm text-gray-500">
+                            <img
+                              src={`https://api.dicebear.com/7.x/initials/svg?seed=${reply.author}`}
+                              alt=""
+                              className="w-6 h-6 rounded-full mr-2"
+                            />
+                            <span className="font-medium">{reply.author}</span>
+                            <span className="mx-2">•</span>
+                            <span>{formatCommentDate(reply.created_at)}</span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            {/* 添加点赞按钮 */}
+                            {isAuthenticated && (
+                              <button
+                                onClick={() => {
+                                  const isLiked = reply.likes?.includes(user?.id);
+                                  if (isLiked) {
+                                    handleUnlike(reply._id);
+                                  } else {
+                                    handleLike(reply._id);
+                                  }
+                                }}
+                                className={`flex items-center space-x-1 px-2 py-1 rounded transition-colors ${
+                                  reply.likes?.includes(user?.id)
+                                    ? 'text-blue-500 bg-blue-50'
+                                    : 'text-gray-500 hover:bg-gray-50'
+                                }`}
+                              >
+                                <ThumbsUp className="w-4 h-4" />
+                                <span className="text-sm">{reply.likes?.length || 0}</span>
+                              </button>
+                            )}
+                            
+                            {/* 回复按钮 */}
+                            {isAuthenticated && (
+                              <button
+                                onClick={() => {
+                                  setReplyingTo(comment._id);
+                                  setReplyContent(`回复 ${reply.author}：`);
+                                }}
+                                className="text-gray-500 hover:text-blue-500 hover:bg-gray-50 p-1 rounded flex items-center space-x-1"
+                              >
+                                <MessageSquare className="w-4 h-4" />
+                                <span className="text-sm">回复</span>
+                              </button>
+                            )}
+
+                            {/* 删除按钮 */}
+                            {isAuthenticated && (user?.isAdmin || reply.author_id === user?.id) && (
+                              <button
+                                onClick={() => handleDeleteComment(reply._id)}
+                                className="text-red-500 hover:text-red-600 p-1 hover:bg-red-50 rounded"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-gray-700 whitespace-pre-wrap">
+                          {reply.content}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {/* 回复框 */}
+              {replyingTo === comment._id && (
                     <div className="mt-3 bg-white rounded-lg p-3 border border-gray-200">
                           <textarea
                              value={replyContent}
@@ -321,57 +427,7 @@ function PostDetail() {
                          </div>
                       </div>
                  )}
-           </div>
 
-              {/* 回复列表 */}
-           {comment.replies && comment.replies.length > 0 && (
-                 <div className="ml-8 mt-2 space-y-3 border-l-2 border-blue-100">
-                      {comment.replies.map((reply) => (
-                         <div key={reply._id} className="pl-4 pt-2">
-                           <div className="bg-gray-50 rounded-lg p-4">
-                            <div className="flex items-center justify-between mb-2">
-                                  <div className="flex items-center text-sm text-gray-500">
-                                     <img
-                                        src={`https://api.dicebear.com/7.x/initials/svg?seed=${reply.author}`}
-                                           alt=""
-                                            className="w-6 h-6 rounded-full mr-2"
-                                      />
-                                     <span className="font-medium">{reply.author}</span>
-                                    <span className="mx-2">•</span>
-                                    <span>{formatCommentDate(reply.created_at)}</span>
-                               </div>
-                              <div className="flex items-center space-x-2">
-                                  {/* 添加回复按钮 */}
-                                   {isAuthenticated && (
-                                        <button
-                                          onClick={() => {
-                                            setReplyingTo(comment._id)
-                                               setReplyContent(`回复 ${reply.author}：`)
-                                           }}
-                                            className="text-gray-500 hover:text-blue-500 hover:bg-gray-50 p-1 rounded flex items-center space-x-1"
-                                       >
-                                            <MessageSquare className="w-4 h-4" />
-                                               <span className="text-sm">回复</span>
-                                      </button>
-                                   )}
-                                 {isAuthenticated && (user?.isAdmin || reply.author_id === user?.id) && (
-                                     <button
-                                       onClick={() => handleDeleteComment(reply._id)}
-                                       className="text-red-500 hover:text-red-600 p-1 hover:bg-red-50 rounded"
-                                       >
-                                         <Trash2 className="w-4 h-4" />
-                                    </button>
-                                 )}
-                              </div>
-                         </div>
-                           <div className="text-gray-700 whitespace-pre-wrap">
-                             {reply.content}
-                          </div>
-                       </div>
-                     </div>
-                    ))}
-                 </div>
-          )}
      </div>
    );
 };
