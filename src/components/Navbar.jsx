@@ -42,7 +42,6 @@ function Navbar() {
                   alt="Logo" 
                   className="h-9 w-9 transform group-hover:scale-110 transition-transform duration-200" 
                 />
-                <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full blur opacity-30 group-hover:opacity-50 transition-opacity duration-200" />
               </div>
               <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 text-transparent bg-clip-text">
                 茶会

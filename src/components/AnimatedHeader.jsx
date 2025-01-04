@@ -32,13 +32,12 @@ const AnimatedHeader = () => {
         <div className="max-w-3xl space-y-4">
           <div className="space-y-2">
             <h1 className="text-3xl font-bold text-white animate-fade-in">
-              欢迎来到茶会
+              欢迎来到星云茶会
               <span className="inline-block animate-wave ml-1">~</span>
             </h1>
             
             <p className="text-base text-blue-100 animate-fade-in-delayed leading-relaxed">
               在这里，每一个想法都值得分享，每一次对话都可能激发灵感。
-              加入我们的社区，与志同道合的朋友一起探讨、成长、创造。
             </p>
           </div>
 
