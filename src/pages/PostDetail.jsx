@@ -470,13 +470,18 @@ function PostDetail() {
                     </div>
 
                     <div className="mb-6">
-                      <LazyImage
-                        src={post.imageURL}
+                      {post.imageURL && (
+                        <div className="relative w-full bg-gray-50 rounded-lg overflow-hidden">
+                          <LazyImage
+                            src={post.imageURL}
                             alt={post.title}
-                            className="w-full rounded-lg shadow-md hover:shadow-lg transition-shadow"
-                          defaultHeight="h-[400px]"
-                          showPlaceholder={false}
-                      />
+                            className="w-full mx-auto rounded-lg shadow-md hover:shadow-lg transition-shadow object-contain 
+                              max-h-[600px] md:max-h-[800px]"
+                            defaultHeight="h-auto"
+                            showPlaceholder={false}
+                          />
+                        </div>
+                      )}
                     </div>
                     <div 
                        className="prose max-w-none mb-6 whitespace-pre-wrap"

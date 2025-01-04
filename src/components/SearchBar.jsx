@@ -49,7 +49,7 @@ function SearchBar({ variant = 'navbar' }) {
       const response = await fetch(
         `${import.meta.env.VITE_API_URL}/api/search?q=${encodeURIComponent(searchQuery)}&type=${selectedType}`
       );
-      
+
       if (!response.ok) {
         throw new Error('搜索请求失败');
       }
@@ -75,6 +75,20 @@ function SearchBar({ variant = 'navbar' }) {
   // 处理手动搜索按钮点击
   const handleManualSearch = () => {
     handleSearch(query);
+  };
+
+  // 根据变体返回不同的样式
+  const getContainerStyles = () => {
+    switch (variant) {
+      case 'navbar':
+        return 'w-full max-w-xl';
+      case 'sidebar':
+        return 'w-full';
+      case 'mobile':
+          return 'w-full';
+      default:
+        return 'w-full';
+    }
   };
 
   // 处理点击外部关闭结果
@@ -105,20 +119,9 @@ function SearchBar({ variant = 'navbar' }) {
     }
   };
 
-  // 根据变体返回不同的样式
-  const getContainerStyles = () => {
-    switch (variant) {
-      case 'navbar':
-        return 'w-full max-w-xl';
-      case 'sidebar':
-        return 'w-full';
-      default:
-        return 'w-full';
-    }
-  };
-
   return (
     <div className={`relative ${getContainerStyles()}`} ref={searchRef}>
+      {/* 移动端不显示类型选择器 */}
       {variant === 'sidebar' && (
         // 侧边栏的搜索类型选择器
         <div className="flex mb-2 space-x-2">
@@ -166,18 +169,20 @@ function SearchBar({ variant = 'navbar' }) {
           value={query}
           onChange={handleInputChange}
           onKeyDown={(e) => e.key === 'Enter' && handleManualSearch()}
-          placeholder={`搜索${
-            selectedType === 'posts' ? '帖子' :
-            selectedType === 'topics' ? '话题' :
-            selectedType === 'users' ? '用户' : '内容'
-          }...`}
-          className="w-full px-4 py-2 pl-10 pr-24 text-sm border border-gray-300 rounded-full 
-            focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            placeholder={`搜索${
+              variant === 'mobile' ? '' :
+              selectedType === 'posts' ? '帖子' :
+              selectedType === 'topics' ? '话题' :
+              selectedType === 'users' ? '用户' : '内容'
+            }...`}
+          className={`w-full px-4 py-2 pl-10 pr-24 text-sm border border-gray-300 rounded-full 
+            focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500
+            ${variant === 'mobile' ? 'bg-gray-50' : ''}`}
         />
-        <Search 
+        <Search
           className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400"
         />
-        
+
         <div className="absolute right-2 flex items-center space-x-1">
           {query && (
             <button
@@ -187,7 +192,7 @@ function SearchBar({ variant = 'navbar' }) {
               <X className="h-4 w-4 text-gray-400" />
             </button>
           )}
-          
+
           <button
             onClick={handleManualSearch}
             disabled={!query.trim() || loading}
@@ -204,7 +209,8 @@ function SearchBar({ variant = 'navbar' }) {
       </div>
 
       {results && (
-        <div className="absolute top-full mt-2 w-full bg-white rounded-lg shadow-lg z-50 max-h-[70vh] overflow-y-auto">
+        <div className={`absolute z-50 w-full bg-white rounded-lg shadow-lg overflow-y-auto
+          ${variant === 'mobile' ? 'max-h-[60vh]' : 'max-h-[70vh] top-full mt-2'}`}>
           {/* 用户结果 */}
           {results.users?.length > 0 && (
             <div className="p-2">
@@ -241,8 +247,8 @@ function SearchBar({ variant = 'navbar' }) {
               <div className="text-xs text-gray-500 px-2 mb-1">帖子</div>
               {results.posts.map(post => (
                 <div key={post._id} className="relative">
-                  <PostPreview 
-                    post={post} 
+                  <PostPreview
+                    post={post}
                     variant="search"
                   >
                     <div
@@ -253,7 +259,7 @@ function SearchBar({ variant = 'navbar' }) {
                       }}
                       className="px-4 py-2 hover:bg-gray-50 cursor-pointer rounded group flex items-center"
                     >
-                      
+
                       <div className="flex-1 min-w-0">
                         <div className="font-medium text-sm truncate">{post.title}</div>
                         <div className="text-xs text-gray-500 mt-0.5">

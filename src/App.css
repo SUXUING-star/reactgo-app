@@ -40,3 +40,26 @@
 .read-the-docs {
   color: #888;
 }
+/* 在全局样式文件中添加 */
+@media (max-width: 768px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  /* 确保 FAB 按钮不会被其他元素遮挡 */
+  .fixed {
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+  
+  /* 优化移动端触摸体验 */
+  .hover\:bg-blue-700:hover {
+    @apply bg-blue-600;
+  }
+  
+  /* 优化移动端滚动 */
+  .overflow-y-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+}

@@ -31,13 +31,45 @@ function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           {/* 左侧 Logo 和导航 */}
-          <div className="flex items-center">
-            <Link to="/" className="flex items-center space-x-2">
-              <img src="/favicon.svg" alt="Logo" className="h-8 w-8" />
+          <div className="flex items-center space-x-6">
+            <Link 
+              to="/" 
+              className="flex items-center space-x-2 group"
+            >
+              <div className="relative">
+                <img 
+                  src="/favicon.svg" 
+                  alt="Logo" 
+                  className="h-9 w-9 transform group-hover:scale-110 transition-transform duration-200" 
+                />
+                <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full blur opacity-30 group-hover:opacity-50 transition-opacity duration-200" />
+              </div>
               <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 text-transparent bg-clip-text">
-                茶会2号
+                茶会
               </span>
             </Link>
+            
+            {isAuthenticated && (
+              <Link
+                to="/create-post"
+                className="flex items-center px-3 py-1.5 rounded-full text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 transform hover:scale-105 transition-all duration-200 shadow-md hover:shadow-lg"
+              >
+                <svg 
+                  className="w-4 h-4 mr-1.5" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth={2} 
+                    d="M12 4v16m8-8H4" 
+                  />
+                </svg>
+                发布帖子
+              </Link>
+            )}
             
             {/* 导航链接 */}
             <div className="hidden md:flex items-center ml-8 space-x-4">
@@ -80,16 +112,7 @@ function Navbar() {
                   </button>
                 </div>
 
-                {/* 发布按钮 */}
-                <Link
-                  to="/create-post"
-                  className="hidden md:inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-full
-                  text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 
-                  transition-all duration-300 shadow-sm hover:shadow-md"
-                >
-                  发布帖子
-                </Link>
-
+                
                 {/* 用户信息 */}
                 <div className="relative">
                   <div 
@@ -182,6 +205,11 @@ function Navbar() {
       {/* 移动端菜单 */}
       {isMenuOpen && (
         <div className="md:hidden">
+          {/* 移动端搜索框 */}
+          <div className="px-4 py-2">
+            <SearchBar variant="mobile" />
+          </div>
+          
           <div className="px-2 pt-2 pb-3 space-y-1">
             {navLinks.map((link) => (
               <Link

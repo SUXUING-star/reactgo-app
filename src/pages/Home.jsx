@@ -320,14 +320,16 @@ const Home = () => {
                                                   <p className="text-gray-500 max-w-sm mx-auto">
                                                        来发布第一篇帖子，分享你的想法和经验吧！
                                                      </p>
-                                                    {isAuthenticated && (
-                                                      <Link
-                                                        to="/create-post"
-                                                        className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                                                          >
-                                                            <Plus className="w-5 h-5 mr-2" />
-                                                            发布新帖子
-                                                         </Link>
+                                                     {isAuthenticated && (
+                                                      <div className="md:hidden fixed bottom-6 right-6 z-50">
+                                                        <Link
+                                                          to="/create-post"
+                                                          className="flex items-center justify-center w-14 h-14 rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700 transition-colors"
+                                                          aria-label="发布新帖子"
+                                                        >
+                                                          <Plus className="w-6 h-6" />
+                                                        </Link>
+                                                      </div>
                                                     )}
                                               </div>
                                           </div>
