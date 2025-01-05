@@ -77,7 +77,7 @@ const AnimatedHeader = () => {
               ref={titleRef}
               className="text-3xl font-bold text-white"
             >
-              欢迎来到茶会
+              欢迎来到星云茶会
             </h1>
             
             <p 
