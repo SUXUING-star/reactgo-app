@@ -12,9 +12,9 @@ function EditPost() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [imageURL, setImageURL] = useState('');
-  const [newImage, setNewImage] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [topics, setTopics] = useState([]);
   const [selectedTopic, setSelectedTopic] = useState(null);
   const [newTopic, setNewTopic] = useState({ title: '', description: '' });
@@ -50,6 +50,7 @@ function EditPost() {
         setLoading(false);
       }
     };
+
     const fetchTopics = async () => {
       try {
         const response = await fetch(`${import.meta.env.VITE_API_URL}/api/topics`, {
@@ -60,8 +61,6 @@ function EditPost() {
         if (response.ok) {
           const data = await response.json();
           setTopics(data);
-        } else {
-          console.error('Failed to fetch topics');
         }
       } catch (error) {
         console.error('Error fetching topics:', error);
@@ -73,51 +72,69 @@ function EditPost() {
     fetchTopics();
   }, [id, token, user?.id, navigate]);
 
-    useEffect(() => {
-        if (!loading) {
-            // 主要内容区域动画
-            anime({
-                targets: '.edit-form-container',
-                translateY: [20, 0],
-                 opacity: [0, 1],
-                duration: 800,
-                 easing: 'easeOutExpo'
-           });
+  useEffect(() => {
+    if (!loading) {
+      anime({
+        targets: '.edit-form-container',
+        translateY: [20, 0],
+        opacity: [0, 1],
+        duration: 800,
+        easing: 'easeOutExpo'
+      });
 
-         // 表单元素依次动画
-            anime({
-                targets: '.form-field',
-                translateX: [-30, 0],
-                 opacity: [0, 1],
-                delay: anime.stagger(80),
-              duration: 600,
-              easing: 'easeOutCubic'
-            });
+      anime({
+        targets: '.form-field',
+        translateX: [-30, 0],
+        opacity: [0, 1],
+        delay: anime.stagger(80),
+        duration: 600,
+        easing: 'easeOutCubic'
+      });
 
-         // 按钮组动画
-         anime({
-            targets: '.form-buttons button',
-            scale: [0.8, 1],
-             opacity: [0, 1],
-            delay: anime.stagger(100, {start: 400}),
-             duration: 600,
-             easing: 'easeOutElastic(1, .8)'
-          });
-       }
-    }, [loading]);
+      anime({
+        targets: '.form-buttons button',
+        scale: [0.8, 1],
+        opacity: [0, 1],
+        delay: anime.stagger(100, {start: 400}),
+        duration: 600,
+        easing: 'easeOutElastic(1, .8)'
+      });
+    }
+  }, [loading]);
 
-  const handleImageChange = (e) => {
+  const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      setNewImage(file);
-      const previewURL = URL.createObjectURL(file);
-      setImageURL(previewURL);
+      try {
+        setUploadingImage(true);
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/upload`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error('图片上传失败');
+        }
+
+        const data = await response.json();
+        setImageURL(data.url);
+      } catch (error) {
+        console.error('Error uploading image:', error);
+        alert('图片上传失败，请重试');
+      } finally {
+        setUploadingImage(false);
+      }
     }
   };
 
   const handleDeleteImage = () => {
     setImageURL('');
-    setNewImage(null);
   };
 
   const handleCreateTopic = async (e) => {
@@ -153,6 +170,7 @@ function EditPost() {
         topic_id: selectedTopic === 'null' ? null : selectedTopic,
         category,
       };
+
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/posts/${id}`, {
         method: 'PUT',
         headers: {
@@ -161,22 +179,16 @@ function EditPost() {
         },
         body: JSON.stringify(updateData),
       });
+
       if (!response.ok) {
         throw new Error('Failed to update post');
       }
+
       navigate(`/post/${id}`);
     } catch (error) {
       console.error('Error updating post:', error);
       setError(error.message);
     }
-  };
-
-  const handleTopicChange = (e) => {
-    setSelectedTopic(e.target.value);
-  };
-
-  const handleCategoryChange = (e) => {
-    setCategory(e.target.value);
   };
 
   if (loading) {
@@ -189,6 +201,7 @@ function EditPost() {
       </div>
     );
   }
+
   if (error) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -202,6 +215,7 @@ function EditPost() {
       <div className="max-w-2xl mx-auto edit-form-container opacity-0">
         <h1 className="text-3xl font-bold mb-8">编辑帖子</h1>
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Title field */}
           <div className="form-field opacity-0">
             <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
               标题
@@ -215,6 +229,8 @@ function EditPost() {
               required
             />
           </div>
+
+          {/* Image upload field */}
           <div className="form-field opacity-0">
             <label className="block text-sm font-medium text-gray-700 mb-1">图片</label>
             <div className="mt-1 flex items-center space-x-4">
@@ -224,18 +240,22 @@ function EditPost() {
                 onChange={handleImageChange}
                 className="hidden"
                 id="image-upload"
+                disabled={uploadingImage}
               />
               <label
                 htmlFor="image-upload"
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 cursor-pointer"
+                className={`px-4 py-2 ${
+                  uploadingImage ? 'bg-gray-300 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200 cursor-pointer'
+                } text-gray-700 rounded-lg`}
               >
-                选择新图片
+                {uploadingImage ? '上传中...' : '选择新图片'}
               </label>
               {imageURL && (
                 <button
                   type="button"
                   onClick={handleDeleteImage}
                   className="px-4 py-2 text-red-600 hover:text-red-700"
+                  disabled={uploadingImage}
                 >
                   删除图片
                 </button>
@@ -269,23 +289,27 @@ function EditPost() {
               </div>
             )}
           </div>
-            <div className="form-field opacity-0">
-               <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
-                 分类
-              </label>
-              <select
-                id="category"
-                 value={category}
-                onChange={handleCategoryChange}
-               className="w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
-               required
-              >
-               <option value="">请选择分类</option>
-                {categories.map((cat) => (
-                   <option key={cat} value={cat}>{cat}</option>
-                 ))}
-              </select>
-            </div>
+
+          {/* Category field */}
+          <div className="form-field opacity-0">
+            <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
+              分类
+            </label>
+            <select
+              id="category"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+              required
+            >
+              <option value="">请选择分类</option>
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Topic field */}
           <div className="form-field opacity-0">
             <label htmlFor="topic" className="block text-sm font-medium text-gray-700 mb-1">
               话题
@@ -294,7 +318,7 @@ function EditPost() {
               <select
                 id="topic"
                 value={selectedTopic || 'null'}
-                onChange={handleTopicChange}
+                onChange={(e) => setSelectedTopic(e.target.value)}
                 className="w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="null">无话题</option>
@@ -311,38 +335,24 @@ function EditPost() {
                 <Hash className="w-4 h-4" />
               </Link>
             </div>
-              <div className="flex items-center space-x-2">
-                  <input
-                    type="text"
-                    value={newTopic.title}
-                   onChange={(e) => setNewTopic({ ...newTopic, title: e.target.value })}
-                     placeholder="创建新话题"
-                   className="w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                  />
-               <button
-                     onClick={handleCreateTopic}
-                  className="px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                >
-                   <Hash className="w-4 h-4" />
-                </button>
-             </div>
           </div>
-            <div className="form-field opacity-0">
-             <label
-                htmlFor="content"
-                className="block text-sm font-medium text-gray-700 mb-1"
-            >
-                内容
-             </label>
+
+          {/* Content field */}
+          <div className="form-field opacity-0">
+            <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">
+              内容
+            </label>
             <textarea
-                  id="content"
-                 value={content}
-                 onChange={(e) => setContent(e.target.value)}
-                 rows={12}
-                 className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                 required
-               />
+              id="content"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              rows={12}
+              className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              required
+            />
           </div>
+
+          {/* Buttons */}
           <div className="form-buttons flex justify-end space-x-4">
             <button
               type="button"
@@ -354,6 +364,7 @@ function EditPost() {
             <button
               type="submit"
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 opacity-0"
+              disabled={uploadingImage}
             >
               保存修改
             </button>
