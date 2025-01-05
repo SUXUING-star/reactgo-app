@@ -163,7 +163,7 @@ function SearchBar({ variant = 'navbar' }) {
         </div>
       )}
 
-      <div className="relative flex items-center">
+      <div className="relative flex items-center" >
         <input
           type="text"
           value={query}
@@ -209,9 +209,9 @@ function SearchBar({ variant = 'navbar' }) {
       </div>
 
       {results && (
-        <div className={`absolute z-50 w-full bg-white rounded-lg shadow-lg overflow-y-auto
-          ${variant === 'mobile' ? 'max-h-[60vh]' : 'max-h-[70vh] top-full mt-2'}`}>
-          {/* 用户结果 */}
+       <div className="absolute z-[100] w-full bg-white rounded-lg shadow-lg overflow-y-auto
+        ${variant === 'mobile' ? 'max-h-[60vh]' : 'max-h-[70vh] top-full mt-2'}">
+        {/* 用户结果 */}
           {results.users?.length > 0 && (
             <div className="p-2">
               <div className="text-xs text-gray-500 px-2 mb-1">用户</div>

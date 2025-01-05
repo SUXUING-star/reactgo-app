@@ -16,6 +16,7 @@ import Ranking from './pages/Ranking'
 import Settings from './pages/Settings'
 import Messages from './pages/Messages';
 import { ProgressProvider } from './context/ProgressContext';
+import UserProfile from './pages/UserProfile'
 function App() {
   return (
     <AuthProvider>
@@ -26,7 +27,7 @@ function App() {
           <Navbar />
           <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <Routes>
-              
+              <Route path="/user/:id" element={<UserProfile />} />
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />

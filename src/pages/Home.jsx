@@ -259,11 +259,21 @@ const Home = () => {
                         {post.content?.replace(/<[^>]*>/g, '')}
                     </p>
                 <div className="flex items-center mt-auto pt-3 border-t border-gray-100">
+                    <Link
+                        to={`/user/${post.author_id}`}
+                        className="flex items-center flex-1 hover:opacity-80 transition-opacity"
+                        onClick={(e) => e.stopPropagation()}
+                    >
                         <img
-                            src={`https://api.dicebear.com/7.x/initials/svg?seed=${post.author}`}
-                            alt=""
-                            className="w-6 h-6 rounded-full"
-                        />
+                          src={post.author_avatar || '/default-avatar.svg'}
+                          alt={post.author}
+                          className="w-6 h-6 rounded-full object-cover"
+                          onError={(e) => {
+                              // 防止无限循环
+                              e.target.onerror = null;  // 重要：移除错误处理器
+                              e.target.src = '/default-avatar.svg';
+                          }}
+                      />
                         <div className="ml-2 flex-1">
                             <p className="text-sm font-medium text-gray-900">{post.author}</p>
                             <p className="text-xs text-gray-500">
@@ -273,6 +283,8 @@ const Home = () => {
                                 })}
                             </p>
                         </div>
+                    </Link>
+
                     <div className="flex items-center text-gray-500 text-sm">
                             <MessageSquare className="w-4 h-4 mr-1" />
                                 <span>{post.comments_count || 0}</span>

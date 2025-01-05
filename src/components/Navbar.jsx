@@ -176,10 +176,14 @@ function Navbar() {
                         onClick={() => setShowUserMenu(!showUserMenu)}
                     >
                         <img
-                           src={`https://api.dicebear.com/7.x/initials/svg?seed=${user?.username}`}
-                           alt=""
-                            className="w-8 h-8 rounded-full ring-2 ring-white"
-                         />
+                          src={user.avatar || '/default-avatar.svg'} // 改用 .svg
+                          alt={user.author}
+                          className="w-6 h-6 rounded-full object-cover"
+                          onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src = '/default-avatar.svg';
+                          }}
+                      />
                         <span className="hidden md:inline text-sm font-medium text-gray-700">
                           {user?.username}
                         </span>

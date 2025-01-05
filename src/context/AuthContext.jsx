@@ -30,6 +30,8 @@ export function AuthProvider({ children }) {
         id: userData.id,
         username: userData.username,
         email: userData.email,
+        bio: userData.bio,
+        avatar: userData.avatar || '/default-avatar.svg', // 确保有默认头像
         isVerified: userData.is_verified,
         createdAt: userData.created_at,
         tokenExpiredAt: userData.token_expired_at
@@ -52,6 +54,21 @@ export function AuthProvider({ children }) {
       localStorage.removeItem('user')
     } catch (error) {
       console.error('Error removing auth data:', error)
+    }
+  }
+
+  // 添加更新用户信息的函数
+  const updateUser = (updateData) => {
+    try {
+      const updatedUser = {
+        ...user,
+        ...updateData,
+        avatar: updateData.avatar || user?.avatar || '/default-avatar.svg'
+      }
+      setUser(updatedUser)
+      localStorage.setItem('user', JSON.stringify(updatedUser))
+    } catch (error) {
+      console.error('Error updating user data:', error)
     }
   }
 
@@ -84,6 +101,7 @@ export function AuthProvider({ children }) {
     isAuthenticated: !!token,
     login,
     logout,
+    updateUser, // 导出 updateUser 函数
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

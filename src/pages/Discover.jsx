@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
 import { Compass, Flame, Clock, Tag, Hash } from 'lucide-react';
+import anime from 'animejs';
 
 function Discover() {
   const [posts, setPosts] = useState([]);
@@ -16,35 +17,70 @@ function Discover() {
     { id: 'topics', name: '话题', icon: <Tag className="w-4 h-4" /> },
   ];
 
-  useEffect(() => {
-    fetchPosts();
-  }, [activeTab, token]);
+  // 添加 refs 用于动画
+    const postsContainerRef = useRef(null);
+    const tabsRef = useRef(null);
+    const tabIndicatorRef = useRef(null);
 
-  const fetchPosts = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/discover${
-          activeTab === 'latest' ? '?sort=latest' : ''
-        }`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+    useEffect(() => {
+        fetchPosts();
+    }, [activeTab, token]);
+
+    // 添加标签切换动画
+    useEffect(() => {
+        if (tabsRef.current && tabIndicatorRef.current) {
+            const activeTabElement = tabsRef.current.querySelector(`[data-tab="${activeTab}"]`);
+            if (activeTabElement) {
+                anime({
+                    targets: tabIndicatorRef.current,
+                    left: activeTabElement.offsetLeft,
+                    width: activeTabElement.offsetWidth,
+                    duration: 600,
+                    easing: 'easeOutElastic(1, .8)'
+                });
+            }
         }
-      );
-      const data = await response.json();
-      setPosts(data);
-      const uniqueTopicIds = [...new Set(data.filter(post => post.topic_id).map(post => post.topic_id))];
-      if (uniqueTopicIds.length > 0) {
-        fetchTopics(uniqueTopicIds);
-      }
-    } catch (error) {
-      console.error('Error fetching posts:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    }, [activeTab]);
+
+    const fetchPosts = async () => {
+        setLoading(true);
+        try {
+            const response = await fetch(
+                `${import.meta.env.VITE_API_URL}/api/discover${
+                    activeTab === 'latest' ? '?sort=latest' : ''
+                }`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+            const data = await response.json();
+            setPosts(data);
+            
+            // 添加帖子加载动画
+            if (postsContainerRef.current) {
+                anime({
+                    targets: postsContainerRef.current.children,
+                    opacity: [0, 1],
+                    translateY: [20, 0],
+                    scale: [0.95, 1],
+                    delay: anime.stagger(100),
+                    duration: 800,
+                    easing: 'easeOutElastic(1, .8)'
+                });
+            }
+
+            const uniqueTopicIds = [...new Set(data.filter(post => post.topic_id).map(post => post.topic_id))];
+            if (uniqueTopicIds.length > 0) {
+                fetchTopics(uniqueTopicIds);
+            }
+        } catch (error) {
+            console.error('Error fetching posts:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
   const fetchTopics = async (topicIds) => {
     try {
@@ -91,25 +127,31 @@ function Discover() {
       </div>
 
       <div className="mb-6">
-        <nav className="flex space-x-4">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium ${
-                activeTab === tab.id
-                  ? 'bg-blue-100 text-blue-600'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              {tab.icon}
-              <span className="ml-2">{tab.name}</span>
-            </button>
-          ))}
-        </nav>
-      </div>
+                <nav ref={tabsRef} className="flex space-x-4 relative">
+                    <div
+                        ref={tabIndicatorRef}
+                        className="absolute bottom-0 h-1 bg-blue-600 rounded-full transition-all"
+                        style={{ width: '0' }}
+                    />
+                    {tabs.map((tab) => (
+                        <button
+                            key={tab.id}
+                            data-tab={tab.id}
+                            onClick={() => setActiveTab(tab.id)}
+                            className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium ${
+                                activeTab === tab.id
+                                    ? 'text-blue-600'
+                                    : 'text-gray-500 hover:text-gray-700'
+                            }`}
+                        >
+                            {tab.icon}
+                            <span className="ml-2">{tab.name}</span>
+                        </button>
+                    ))}
+                </nav>
+            </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div ref={postsContainerRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {posts.map((post) => (
           <Link
             key={post._id}

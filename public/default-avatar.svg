@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4F46E5" />
+      <stop offset="100%" style="stop-color:#7C3AED" />
+    </linearGradient>
+  </defs>
+  <!-- 背景圆形 -->
+  <circle cx="50" cy="50" r="50" fill="url(#gradient)" />
+  <!-- 大星星 -->
+  <path d="M50 20 L53 35 L68 35 L56 44 L60 59 L50 49 L40 59 L44 44 L32 35 L47 35 Z" fill="white" />
+  <!-- 小星星1 -->
+  <path d="M25 35 L26 40 L31 40 L27 43 L29 48 L25 45 L21 48 L23 43 L19 40 L24 40 Z" fill="white" opacity="0.7" />
+  <!-- 小星星2 -->
+  <path d="M75 55 L76 60 L81 60 L77 63 L79 68 L75 65 L71 68 L73 63 L69 60 L74 60 Z" fill="white" opacity="0.7" />
+</svg>

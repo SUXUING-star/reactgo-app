@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Hash, Plus, Users, MessageSquare, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import anime from 'animejs';
 
 function Topics() {
     const [topics, setTopics] = useState([]);
@@ -14,6 +15,11 @@ function Topics() {
         title: '',
         description: '',
     });
+
+    // 添加 refs 用于动画
+    const topicsContainerRef = useRef(null);
+    const postsContainerRef = useRef(null);
+    const modalRef = useRef(null);
 
     useEffect(() => {
         const fetchTopics = async () => {
@@ -28,6 +34,18 @@ function Topics() {
                 }
                 const data = await response.json();
                 setTopics(Array.isArray(data) ? data : []);
+                
+                // 添加话题列表的动画
+                if (topicsContainerRef.current) {
+                    anime({
+                        targets: topicsContainerRef.current.children,
+                        opacity: [0, 1],
+                        translateY: [20, 0],
+                        delay: anime.stagger(100),
+                        duration: 800,
+                        easing: 'easeOutElastic(1, .8)'
+                    });
+                }
             } catch (error) {
                 console.error('Error fetching topics:', error);
                 setTopics([]);
@@ -53,9 +71,21 @@ function Topics() {
         }
     };
 
+
     const handleTopicClick = (topic) => {
         setSelectedTopic(topic);
         fetchTopicPosts(topic._id);
+        
+        // 添加话题切换时的动画
+        if (postsContainerRef.current) {
+            anime({
+                targets: postsContainerRef.current,
+                opacity: [0, 1],
+                translateX: [-20, 0],
+                duration: 600,
+                easing: 'easeOutQuad'
+            });
+        }
     };
 
     const handleCreateTopic = async (e) => {
@@ -74,6 +104,20 @@ function Topics() {
             }
             const data = await response.json();
             setTopics(prev => [...prev, data]);
+            
+            // 添加新话题创建后的动画
+            if (topicsContainerRef.current) {
+                const newTopicElement = topicsContainerRef.current.lastChild;
+                anime({
+                    targets: newTopicElement,
+                    opacity: [0, 1],
+                    translateY: [20, 0],
+                    scale: [0.9, 1],
+                    duration: 800,
+                    easing: 'easeOutElastic(1, .8)'
+                });
+            }
+            
             setShowCreateModal(false);
             setNewTopic({ title: '', description: '' });
         } catch (error) {
@@ -81,29 +125,56 @@ function Topics() {
             alert('创建话题失败，请重试');
         }
     };
-        const handleDeleteTopic = async (topicId) => {
-            if(!window.confirm('如果删掉此话题的话，相应帖子的话题就会被相应删去，你确定吗？')){
-                return
-             }
-            try {
-                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/topics/${topicId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                    },
-                });
-                if (!response.ok) {
-                   const message = await response.json();
-                   throw new Error(message.error || '删除话题失败');
-                }
-                 setTopics(prev => prev.filter(topic => topic._id !== topicId));
-                 setSelectedTopic(null);
-                 setTopicPosts([]);
-           } catch (error) {
-                console.error('Error deleting topic:', error);
-                alert(error.message || '删除话题失败，请重试')
-           }
-        };
+
+    const handleDeleteTopic = async (topicId) => {
+        if(!window.confirm('如果删掉此话题的话，相应帖子的话题就会被相应删去，你确定吗？')){
+            return;
+        }
+        
+        // 添加删除话题的动画
+        const topicElement = topicsContainerRef.current.querySelector(`[data-topic-id="${topicId}"]`);
+        if (topicElement) {
+            await anime({
+                targets: topicElement,
+                opacity: 0,
+                translateX: 20,
+                duration: 400,
+                easing: 'easeOutQuad'
+            }).finished;
+        }
+
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/topics/${topicId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+            if (!response.ok) {
+                const message = await response.json();
+                throw new Error(message.error || '删除话题失败');
+            }
+            setTopics(prev => prev.filter(topic => topic._id !== topicId));
+            setSelectedTopic(null);
+            setTopicPosts([]);
+        } catch (error) {
+            console.error('Error deleting topic:', error);
+            alert(error.message || '删除话题失败，请重试');
+        }
+    };
+
+    // 添加模态框动画效果
+    useEffect(() => {
+        if (showCreateModal && modalRef.current) {
+            anime({
+                targets: modalRef.current,
+                scale: [0.9, 1],
+                opacity: [0, 1],
+                duration: 400,
+                easing: 'spring(1, 80, 10, 0)'
+            });
+        }
+    }, [showCreateModal]);
 
     if (loading) {
         return (
@@ -142,10 +213,11 @@ function Topics() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* 话题列表 */}
                 <div className="md:col-span-1">
-                    <div className="space-y-4">
+                    <div ref={topicsContainerRef} className="space-y-4">
                         {topics.map((topic) => (
-                           <div
+                            <div
                                 key={topic._id}
+                                data-topic-id={topic._id}
                                 onClick={() => handleTopicClick(topic)}
                                 className={`bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-6 cursor-pointer
                                 ${selectedTopic?._id === topic._id ? 'ring-2 ring-blue-500' : ''}`}
@@ -178,7 +250,7 @@ function Topics() {
                     </div>
                 </div>
                 {/* 帖子列表 */}
-                <div className="md:col-span-2">
+                <div ref={postsContainerRef} className="md:col-span-2">
                     {selectedTopic ? (
                         <div className="space-y-4">
                             <div className="bg-white rounded-lg p-4 mb-4">
@@ -228,7 +300,7 @@ function Topics() {
             {/* 创建话题的模态框 */}
             {showCreateModal && (
                <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-                   <div className="bg-white rounded-lg p-6 max-w-md w-full">
+                   <div ref={modalRef} className="bg-white rounded-lg p-6 max-w-md w-full" style={{ opacity: 0 }}>
                        <h2 className="text-xl font-semibold mb-4">创建新话题</h2>
                       <form onSubmit={handleCreateTopic} className="space-y-4">
                             <div>

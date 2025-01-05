@@ -374,20 +374,61 @@ function PostDetail() {
               return '未知时间';
          }
       };
-   const renderComment = (comment, depth = 0) => {
+
+   // 修改文章作者信息显示部分
+  const renderPostAuthorInfo = () => (
+    <div className="flex items-center text-gray-500 text-sm mb-6">
+        <Link
+            to={`/user/${post?.author_id}`}
+            className="flex items-center hover:opacity-80 transition-opacity"
+        >
+            <img
+                src={post?.author_avatar || '/default-avatar.svg'}
+                alt={post?.author}
+                className="w-8 h-8 rounded-full object-cover mr-2"
+                onError={(e) => {
+                    e.target.onerror = null;  // 重要：移除错误处理器
+                    e.target.src = '/default-avatar.svg';
+                }}
+            />
+            <span className="font-medium text-gray-900">{post?.author}</span>
+        </Link>
+        <span className="mx-2">•</span>
+        {post?.created_at && (
+            <span>
+                {formatDistance(new Date(post.created_at), new Date(), {
+                    addSuffix: true,
+                    locale: zhCN,
+                })}
+            </span>
+        )}
+    </div>
+);
+
+    // 修改评论渲染函数中的用户信息显示部分
+    const renderComment = (comment, depth = 0) => {
       const isLiked = comment.likes?.includes(user?.id);
       const hasLikeAnimation = likedComments.has(comment._id);
-     return (
-        <div key={comment._id} className="mb-4">
+      return (
+        <div key={comment._id} className="mb-4 comment-item opacity-0">
             <div className={`bg-white rounded-lg p-4 ${depth === 1 ? 'ml-8' : depth === 2 ? 'ml-16' : ''}`}>
                 <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center text-sm text-gray-500">
-                        <img
-                          src={`https://api.dicebear.com/7.x/initials/svg?seed=${comment.author}`}
-                            alt=""
-                           className="w-6 h-6 rounded-full mr-2"
-                         />
-                      <span className="font-medium">{comment.author}</span>
+                      <Link 
+                        to={`/user/${comment.author_id}`}
+                         className="flex items-center hover:opacity-80 transition-opacity"
+                       >
+                              <img
+                                  src={comment.author_avatar || '/default-avatar.png'}
+                                  alt={comment.author}
+                                  className="w-6 h-6 rounded-full object-cover mr-2"
+                                  onError={(e) => {
+                                      e.target.onerror = null;  // 重要：移除错误处理器
+                                      e.target.src = '/default-avatar.png';
+                                  }}
+                              />
+                            <span className="font-medium text-gray-900">{comment.author}</span>
+                        </Link>
                         <span className="mx-2">•</span>
                         <span>{formatCommentDate(comment.created_at)}</span>
                     </div>
@@ -437,12 +478,21 @@ function PostDetail() {
                     <div className="bg-gray-50 rounded-lg p-4">
                        <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center text-sm text-gray-500">
-                           <img
-                             src={`https://api.dicebear.com/7.x/initials/svg?seed=${reply.author}`}
-                              alt=""
-                               className="w-6 h-6 rounded-full mr-2"
-                               />
-                           <span className="font-medium">{reply.author}</span>
+                           <Link
+                             to={`/user/${reply.author_id}`}
+                              className="flex items-center hover:opacity-80 transition-opacity"
+                             >
+                                <img
+                                    src={reply.author_avatar || '/default-avatar.svg'}
+                                    alt={reply.author}
+                                    className="w-6 h-6 rounded-full object-cover mr-2"
+                                    onError={(e) => {
+                                        e.target.onerror = null;  // 重要：移除错误处理器
+                                        e.target.src = '/default-avatar.svg';
+                                    }}
+                                />
+                           <span className="font-medium text-gray-900">{reply.author}</span>
+                            </Link>
                             <span className="mx-2">•</span>
                                  <span>{formatCommentDate(reply.created_at)}</span>
                              </div>
@@ -530,8 +580,8 @@ function PostDetail() {
                 </div>
           )}
     </div>
-   );
-};
+    );
+    };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -553,24 +603,7 @@ function PostDetail() {
                 )}
            </div>
             <h1 className="text-3xl font-bold mb-4 text-gray-900">{post?.title}</h1>
-            <div className="flex items-center text-gray-500 text-sm mb-6">
-                <img
-                  src={`https://api.dicebear.com/7.x/initials/svg?seed=${post?.author || 'anonymous'}`}
-                  alt=""
-                  className="w-6 h-6 rounded-full mr-2"
-                />
-                <span>{post?.author}</span>
-                <span className="mx-2">•</span>
-                {post?.created_at && (
-                      <span>
-                        {formatDistance(new Date(post.created_at), new Date(), {
-                           addSuffix: true,
-                            locale: zhCN,
-                        })}
-                     </span>
-                )}
-           </div>
-
+             {renderPostAuthorInfo()}
                 <div className="mb-6">
                   {post.imageURL && (
                     <div className="relative w-full bg-gray-50 rounded-lg overflow-hidden">

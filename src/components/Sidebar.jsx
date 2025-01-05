@@ -83,12 +83,12 @@ const Sidebar = () => {
   return (
     <div className="space-y-6">
       {/* 搜索栏 */}
-      <div className="sidebar-item opacity-0 mb-6">
+      <div className="sidebar-item opacity-0 mb-6 relative z-30">
         <SearchBar variant="sidebar" />
       </div>
       {/* 发布新帖子部分 */}
         {isAuthenticated && (
-            <div className="sidebar-item opacity-0">
+            <div className="sidebar-item opacity-0 relative z-20">
                 <Link
                     to="/create-post"
                   className="block w-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl p-6 text-white transform transition-all hover:scale-105 hover:shadow-xl"

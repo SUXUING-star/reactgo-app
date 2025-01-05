@@ -1,4 +1,3 @@
-// src/components/PostPreview.jsx
 import React, { useState, useEffect } from 'react';
 import { MessageSquare, Eye, ThumbsUp } from 'lucide-react';
 import { formatDistance } from 'date-fns';
@@ -71,11 +70,16 @@ const PostPreview = ({ post, children, variant = 'default' }) => {
           {variant === 'search' ? (
           <div className="p-3">
             <div className="flex items-center space-x-2 text-xs text-gray-500 mb-2">
+              {/* 修改搜索结果预览中的头像显示部分 */}
               <img
-                src={`https://api.dicebear.com/7.x/initials/svg?seed=${post.author}`}
-                alt=""
+                src={post.author_avatar || '/default-avatar.svg'}
+                alt={post.author}
                 className="w-4 h-4 rounded-full"
-              />
+                onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = '/default-avatar.svg';
+                }}
+                />
               <span>{post.author}</span>
               <p className="text-xs text-gray-500">
                 {formatDistance(new Date(post.created_at), new Date(), {addSuffix: true,locale: zhCN,})}
@@ -126,26 +130,31 @@ const PostPreview = ({ post, children, variant = 'default' }) => {
               ) : comments.length > 0 ? (
                 <div className="space-y-2">
                   {comments.slice(0, 2).map((comment, index) => (
-                    <div key={index} className="text-xs">
-                      <div className="flex items-center space-x-1 mb-1">
-                        <img
-                          src={`https://api.dicebear.com/7.x/initials/svg?seed=${comment.author}`}
-                          alt=""
-                          className="w-4 h-4 rounded-full"
-                        />
-                        <span className="font-medium">{comment.author}</span>
-                        <span className="text-gray-500">·</span>
-                        <span className="text-gray-500">
-                          {formatDistance(new Date(comment.created_at), new Date(), {
-                            addSuffix: true,
-                            locale: zhCN,
-                          })}
-                        </span>
+                      <div key={index} className="text-xs">
+                          <div className="flex items-center space-x-1 mb-1">
+                              {/* 修改评论预览中的头像显示部分 */}
+                              <img
+                                  src={comment.author_avatar || '/default-avatar.svg'}
+                                  alt={comment.author}
+                                  className="w-4 h-4 rounded-full"
+                                  onError={(e) => {
+                                      e.target.onerror = null;
+                                      e.target.src = '/default-avatar.svg';
+                                  }}
+                              />
+                              <span className="font-medium">{comment.author}</span>
+                              <span className="text-gray-500">·</span>
+                              <span className="text-gray-500">
+                                  {formatDistance(new Date(comment.created_at), new Date(), {
+                                      addSuffix: true,
+                                      locale: zhCN,
+                                  })}
+                              </span>
+                          </div>
+                          <p className="text-gray-600 line-clamp-2 pl-5">
+                              {comment.content}
+                          </p>
                       </div>
-                      <p className="text-gray-600 line-clamp-2 pl-5">
-                        {comment.content}
-                      </p>
-                    </div>
                   ))}
                 </div>
               ) : (
