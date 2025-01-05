@@ -1,9 +1,9 @@
-// src/context/AuthContext.jsx
 import { createContext, useContext, useState, useEffect } from 'react'
 
 const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
+  const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(() => {
     try {
       return localStorage.getItem('token') || null
@@ -21,7 +21,7 @@ export function AuthProvider({ children }) {
     }
   })
 
-  const login = (newToken, userData) => {
+  const login = async (newToken, userData) => {
     try {
       // 构建包含所有必要信息的用户对象
       const userWithDetails = {
@@ -31,7 +31,7 @@ export function AuthProvider({ children }) {
         username: userData.username,
         email: userData.email,
         bio: userData.bio,
-        avatar: userData.avatar || '/default-avatar.svg', // 确保有默认头像
+        avatar: userData.avatar || '/default-avatar.svg',
         isVerified: userData.is_verified,
         createdAt: userData.created_at,
         tokenExpiredAt: userData.token_expired_at
@@ -41,6 +41,9 @@ export function AuthProvider({ children }) {
       setUser(userWithDetails)
       localStorage.setItem('token', newToken)
       localStorage.setItem('user', JSON.stringify(userWithDetails))
+
+      // 立即验证新token
+      await verifyToken(newToken)
     } catch (error) {
       console.error('Error saving auth data:', error)
     }
@@ -57,7 +60,6 @@ export function AuthProvider({ children }) {
     }
   }
 
-  // 添加更新用户信息的函数
   const updateUser = (updateData) => {
     try {
       const updatedUser = {
@@ -72,28 +74,40 @@ export function AuthProvider({ children }) {
     }
   }
 
-  useEffect(() => {
-    const verifyToken = async () => {
-      if (!token) return
-
-      try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/verify`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-
-        if (!response.ok) {
-          logout()
-        }
-      } catch (error) {
-        console.error('Error verifying token:', error)
-        logout()
-      }
+  const verifyToken = async (currentToken) => {
+    const tokenToVerify = currentToken || token;
+    if (!tokenToVerify) {
+      setLoading(false);
+      return;
     }
 
-    verifyToken()
-  }, [token])
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/verify`, {
+        headers: {
+          Authorization: `Bearer ${tokenToVerify}`,
+        },
+      });
+
+      if (!response.ok) {
+        logout();
+      }
+    } catch (error) {
+      console.error('Error verifying token:', error);
+      logout();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    verifyToken();
+  }, []);
+
+  if (loading) {
+    return <div className="flex justify-center items-center min-h-screen">
+      <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-500 border-t-transparent"></div>
+    </div>;
+  }
 
   const value = {
     token,
@@ -101,7 +115,7 @@ export function AuthProvider({ children }) {
     isAuthenticated: !!token,
     login,
     logout,
-    updateUser, // 导出 updateUser 函数
+    updateUser,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

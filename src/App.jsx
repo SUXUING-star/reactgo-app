@@ -17,6 +17,8 @@ import Settings from './pages/Settings'
 import Messages from './pages/Messages';
 import { ProgressProvider } from './context/ProgressContext';
 import UserProfile from './pages/UserProfile'
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 function App() {
   return (
     <AuthProvider>
@@ -35,6 +37,8 @@ function App() {
               <Route path="/post/:id" element={<PostDetail />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/verify-email" element={<VerifyEmail />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/edit-post/:id" element={<EditPost />} />
               <Route path="/discover" element={<Discover />} />
               <Route path="/topics" element={<Topics />} />

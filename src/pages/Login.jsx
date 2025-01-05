@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import anime from 'animejs';
+import PasswordInput from '../components/PasswordInput';
 
 function Login() {
   const [username, setUsername] = useState('');
@@ -98,25 +99,34 @@ function Login() {
             />
           </div>
           <div className="form-item opacity-0">
-            <label className="block text-sm font-medium text-gray-700">密码</label>
-            <input
-              type="password"
+            <PasswordInput
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
+              label="密码"
               required
             />
           </div>
-              <button
+                <div className="flex items-center justify-between">
+                  <div className="text-sm">
+                    <Link
+                      to="/forgot-password"
+                      className="font-medium text-blue-600 hover:text-blue-500"
+                    >
+                      忘记密码？
+                    </Link>
+                  </div>
+                </div>
+
+                <button
                   type="submit"
                   disabled={loading}
-                  className="form-item opacity-0 w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 transform transition-transform hover:scale-105"
-              >
+                  className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                >
                   {loading ? (
-                      <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" />
-                    ) : (
-                      '登录'
-                 )}
+                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" />
+                  ) : (
+                    '登录'
+                  )}
                 </button>
         </form>
           <div className="form-item opacity-0 mt-6">

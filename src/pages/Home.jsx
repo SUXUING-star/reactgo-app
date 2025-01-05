@@ -1,4 +1,3 @@
-// src/pages/Home.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { formatDistance } from 'date-fns';
@@ -39,7 +38,16 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
 };
 
 // 筛选器组件
-const FilterPanel = ({ categories, topics, activeCategory, activeTopic, onCategoryChange, onTopicChange }) => {
+const FilterPanel = ({ 
+  categories, 
+  topics, 
+  activeCategory, 
+  activeTopic,
+  sortBy,
+  onCategoryChange, 
+  onTopicChange,
+  onSortChange 
+}) => {
   return (
     <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
       <div className="flex items-center mb-4">
@@ -106,6 +114,32 @@ const FilterPanel = ({ categories, topics, activeCategory, activeTopic, onCatego
           ))}
         </div>
       </div>
+      {/* 添加排序选项 */}
+      <div className="mt-4">
+        <h4 className="text-sm font-medium text-gray-700 mb-2">排序方式</h4>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => onSortChange('edited_at')}
+            className={`px-3 py-1 rounded-full text-sm ${
+              sortBy === 'edited_at'
+                ? 'bg-purple-100 text-purple-800'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            最近更新
+          </button>
+          <button
+            onClick={() => onSortChange('created_at')}
+            className={`px-3 py-1 rounded-full text-sm ${
+              sortBy === 'created_at'
+                ? 'bg-purple-100 text-purple-800'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            发布时间
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
@@ -129,6 +163,7 @@ const Home = () => {
     const [topics, setTopics] = useState([]);
     const [activeCategory, setActiveCategory] = useState(null);
     const [activeTopic, setActiveTopic] = useState(null);
+    const [sortBy, setSortBy] = useState('edited_at');
 
     // 获取所有话题
     useEffect(() => {
@@ -175,10 +210,11 @@ const Home = () => {
         const fetchPosts = async () => {
             try {
                 const queryParams = new URLSearchParams({
-                    page: currentPage,
-                    pageSize,
-                     ...(activeCategory && { category: activeCategory }),
-                      ...(activeTopic && { topic_id: activeTopic }),
+                  page: currentPage,
+                  pageSize,
+                  sortBy,
+                  ...(activeCategory && { category: activeCategory }),
+                  ...(activeTopic && { topic_id: activeTopic }),
                  });
 
                const response = await fetch(
@@ -206,7 +242,7 @@ const Home = () => {
            }
         };
          fetchPosts();
-    }, [token, navigate, currentPage, activeCategory, activeTopic]);
+    }, [token, navigate, currentPage, activeCategory, activeTopic, sortBy]);
 
     // 处理分页改变
    const handlePageChange = (newPage) => {
@@ -225,6 +261,10 @@ const Home = () => {
        setActiveTopic(topicId);
        setCurrentPage(1);
     }, []);
+   const handleSortChange = useCallback((newSortBy) => {
+        setSortBy(newSortBy);
+        setCurrentPage(1);
+  }, []);
     const renderPostItem = (post, index) => (
         <PostPreview key={post?._id || `post-${index}`} post={post}>
             <Link
@@ -306,8 +346,10 @@ const Home = () => {
                          topics={topics}
                         activeCategory={activeCategory}
                         activeTopic={activeTopic}
+                        sortBy={sortBy}
                        onCategoryChange={handleCategoryChange}
                          onTopicChange={handleTopicChange}
+                         onSortChange={handleSortChange}
                     />
                     {loading ? (
                          <LoadingSkeleton />

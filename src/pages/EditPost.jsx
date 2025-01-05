@@ -19,7 +19,7 @@ function EditPost() {
   const [selectedTopic, setSelectedTopic] = useState(null);
   const [newTopic, setNewTopic] = useState({ title: '', description: '' });
   const [category, setCategory] = useState('');
-  const categories = ['讨论', '问答', '分享', '建议', '其他'];
+  const categories = ["技术","生活","闲聊","分享","其他"];
 
   useEffect(() => {
     const fetchPostData = async () => {
@@ -160,6 +160,7 @@ function EditPost() {
     }
   };
 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -180,8 +181,9 @@ function EditPost() {
         body: JSON.stringify(updateData),
       });
 
+      const data = await response.json();
       if (!response.ok) {
-        throw new Error('Failed to update post');
+        throw new Error(data.error || 'Failed to update post');
       }
 
       navigate(`/post/${id}`);
@@ -190,7 +192,6 @@ function EditPost() {
       setError(error.message);
     }
   };
-
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
