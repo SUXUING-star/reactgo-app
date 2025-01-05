@@ -3,7 +3,6 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Search, Bell, MessageCircle, Menu, X } from 'lucide-react';
 import NotificationsPopover from './NotificationsPopover';
-import MessagesPopover from './MessagesPopover';
 import SearchBar from './SearchBar';
 import anime from 'animejs';
 
@@ -11,7 +10,7 @@ function Navbar() {
   const { isAuthenticated, user, logout } = useAuth();
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState(''); // 暂时未使用，可以移除
+  const [searchQuery, setSearchQuery] = useState('');
   const [showUserMenu, setShowUserMenu] = useState(false);
   const navigate = useNavigate();
 
@@ -71,6 +70,71 @@ function Navbar() {
         });
   }, []);
 
+  // 移动端菜单的用户信息组件
+  const MobileUserInfo = () => (
+    <div className="px-4 py-3 border-t border-gray-200">
+      <div className="flex items-center space-x-3 mb-3">
+        <img
+          src={user?.avatar || '/default-avatar.svg'}
+          alt={user?.username}
+          className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = '/default-avatar.svg';
+          }}
+        />
+        <div>
+          <div className="font-medium text-gray-900">{user?.username}</div>
+          <div className="text-sm text-gray-500">{user?.email}</div>
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-2 gap-4 mb-3">
+        <div className="bg-gray-50 p-3 rounded-lg text-center">
+          <div className="text-sm font-medium text-gray-500">帖子</div>
+          <div className="text-lg font-semibold text-gray-900">0</div>
+        </div>
+        <div className="bg-gray-50 p-3 rounded-lg text-center">
+          <div className="text-sm font-medium text-gray-500">评论</div>
+          <div className="text-lg font-semibold text-gray-900">0</div>
+        </div>
+      </div>
+
+      <div className="space-y-1">
+        <Link
+          to="/profile"
+          className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50"
+          onClick={() => setIsMenuOpen(false)}
+        >
+          个人主页
+        </Link>
+        <Link
+          to="/messages"
+          className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50"
+          onClick={() => setIsMenuOpen(false)}
+        >
+          消息中心
+        </Link>
+        <Link
+          to="/settings"
+          className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50"
+          onClick={() => setIsMenuOpen(false)}
+        >
+          设置
+        </Link>
+        <button
+          onClick={() => {
+            logout();
+            setIsMenuOpen(false);
+          }}
+          className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-red-600 hover:bg-red-50"
+        >
+          退出登录
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <nav className="bg-white shadow sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -88,9 +152,7 @@ function Navbar() {
                   className="h-9 w-9 transform group-hover:scale-110 transition-transform duration-200"
                 />
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 text-transparent bg-clip-text">
-                星云茶会
-              </span>
+              
             </Link>
 
             {isAuthenticated && (
@@ -176,7 +238,7 @@ function Navbar() {
                         onClick={() => setShowUserMenu(!showUserMenu)}
                     >
                         <img
-                          src={user.avatar || '/default-avatar.svg'} // 改用 .svg
+                          src={user.avatar || '/default-avatar.svg'}
                           alt={user.author}
                           className="w-6 h-6 rounded-full object-cover"
                           onError={(e) => {
@@ -246,7 +308,9 @@ function Navbar() {
                      </Link>
                  </>
                )}
-
+          <div className="flex-1">
+          < NotificationsPopover />
+          </div>
             {/* 移动端菜单按钮 */}
              <button
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -262,19 +326,34 @@ function Navbar() {
         </div>
       </div>
 
-      {/* 移动端菜单 */}
+      
+      {/* 移动端展开菜单 - 修改这部分 */}
       {isMenuOpen && (
-        <div className="md:hidden">
-          {/* 移动端搜索框 */}
-          <div className="px-4 py-2">
+        <div className="md:hidden bg-white border-t border-gray-200">
+          {/* 搜索框 */}
+          <div className="px-4 py-3">
             <SearchBar variant="mobile" />
           </div>
 
-          <div className="px-2 pt-2 pb-3 space-y-1">
+          {/* 通知和消息中心 */}
+          {isAuthenticated && (
+            <div className="px-4 py-2 border-t border-gray-200">
+              <div className="flex justify-between items-center">
+                
+                <div className="flex-1">
+                  <MessagesPopover />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 导航链接 */}
+          <div className="px-4 pt-2 pb-3 space-y-1 border-t border-gray-200">
             {navLinks.map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
+                onClick={() => setIsMenuOpen(false)}
                 className={`block px-3 py-2 rounded-md text-base font-medium
                   ${isActivePath(link.path)
                     ? 'text-blue-600 bg-blue-50'
@@ -285,6 +364,102 @@ function Navbar() {
               </Link>
             ))}
           </div>
+
+          {/* 发帖按钮 */}
+          {isAuthenticated && (
+            <div className="px-4 py-3 border-t border-gray-200">
+              <Link
+                to="/create-post"
+                onClick={() => setIsMenuOpen(false)}
+                className="block w-full text-center px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg font-medium hover:from-blue-600 hover:to-indigo-600"
+              >
+                发布新帖子
+              </Link>
+            </div>
+          )}
+
+          {/* 用户信息区域 */}
+          {isAuthenticated ? (
+            <div className="px-4 py-3 border-t border-gray-200">
+              <div className="flex items-center space-x-3 mb-3">
+                <img
+                  src={user?.avatar || '/default-avatar.svg'}
+                  alt={user?.username}
+                  className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = '/default-avatar.svg';
+                  }}
+                />
+                <div>
+                  <div className="font-medium text-gray-900">{user?.username}</div>
+                  <div className="text-sm text-gray-500">{user?.email}</div>
+                </div>
+
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 mb-3">
+                <div className="bg-gray-50 p-3 rounded-lg text-center">
+                  <div className="text-sm font-medium text-gray-500">帖子</div>
+                  <div className="text-lg font-semibold text-gray-900">0</div>
+                </div>
+                <div className="bg-gray-50 p-3 rounded-lg text-center">
+                  <div className="text-sm font-medium text-gray-500">评论</div>
+                  <div className="text-lg font-semibold text-gray-900">0</div>
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <Link
+                  to="/profile"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  个人主页
+                </Link>
+                <Link
+                  to="/messages"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  消息中心
+                </Link>
+                <Link
+                  to="/settings"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  设置
+                </Link>
+                <button
+                  onClick={() => {
+                    logout();
+                    setIsMenuOpen(false);
+                  }}
+                  className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-red-600 hover:bg-red-50"
+                >
+                  退出登录
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="px-4 py-3 border-t border-gray-200 space-y-2">
+              <Link
+                to="/login"
+                onClick={() => setIsMenuOpen(false)}
+                className="block w-full text-center px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50"
+              >
+                登录
+              </Link>
+              <Link
+                to="/register"
+                onClick={() => setIsMenuOpen(false)}
+                className="block w-full text-center px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg font-medium hover:from-blue-600 hover:to-indigo-600"
+              >
+                注册
+              </Link>
+            </div>
+          )}
         </div>
       )}
     </nav>
