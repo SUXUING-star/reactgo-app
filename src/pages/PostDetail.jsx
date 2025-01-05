@@ -419,12 +419,12 @@ function PostDetail() {
                          className="flex items-center hover:opacity-80 transition-opacity"
                        >
                               <img
-                                  src={comment.author_avatar || '/default-avatar.png'}
+                                  src={comment.author_avatar || '/default-avatar.svg'}
                                   alt={comment.author}
                                   className="w-6 h-6 rounded-full object-cover mr-2"
                                   onError={(e) => {
                                       e.target.onerror = null;  // 重要：移除错误处理器
-                                      e.target.src = '/default-avatar.png';
+                                      e.target.src = '/default-avatar.svg';
                                   }}
                               />
                             <span className="font-medium text-gray-900">{comment.author}</span>
