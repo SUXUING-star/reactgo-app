@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Search, Bell, MessageCircle, Menu, X } from 'lucide-react';
 import NotificationsPopover from './NotificationsPopover';
+import MessagesPopover from './MessagesPopover';
 import SearchBar from './SearchBar';
 import anime from 'animejs';
 
