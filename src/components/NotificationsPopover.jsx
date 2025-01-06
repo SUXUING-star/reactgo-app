@@ -12,7 +12,7 @@ const NOTIFICATION_TYPES = {
   like: { icon: ThumbsUp, color: 'text-pink-500', label: '点赞' },
 };
 
-function NotificationsPopover() {
+function NotificationsPopover({ variant = 'desktop' }) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -166,28 +166,39 @@ function NotificationsPopover() {
 
   return (
     <div className="relative">
-      {/* 通知按钮 */}
       <button
         onClick={() => setShowNotifications(!showNotifications)}
-        className="notification-bell relative p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-full"
+        className={`notification-bell relative p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-full
+          ${variant === 'mobile' ? 'flex items-center space-x-2 w-full' : ''}`}
       >
         <Bell className="h-5 w-5" />
+        {variant === 'mobile' && <span className="text-sm font-medium">通知</span>}
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 h-5 w-5 text-xs text-white bg-red-500 rounded-full flex items-center justify-center animate-bounce">
+          <span className={`absolute ${variant === 'mobile' ? 'right-2' : '-top-1 -right-1'} 
+            h-5 w-5 text-xs text-white bg-red-500 rounded-full flex items-center justify-center animate-bounce`}>
             {unreadCount}
           </span>
         )}
       </button>
 
-      {/* 通知面板 */}
       {showNotifications && (
         <div
-          className="notifications-panel absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 z-50 opacity-0"
-          onMouseLeave={() => setShowNotifications(false)}
+          className={`notifications-panel bg-white shadow-lg ring-1 ring-black ring-opacity-5 z-50 opacity-0
+            ${variant === 'mobile' 
+              ? 'fixed left-0 top-0 w-screen h-screen' // 修改这里，使其固定位置并占满整个屏幕
+              : 'absolute right-0 mt-2 w-96 rounded-lg'}`}
         >
-          {/* 头部筛选区 */}
-          <div className="p-4 border-b flex items-center justify-between">
-            <h3 className="text-sm font-medium">通知</h3>
+          {/* 标题栏 */}
+          <div className="p-3 border-b flex items-center justify-between">
+            <h3 className="text-xs font-medium">通知中心</h3>
+            {variant === 'mobile' && (
+              <button
+                onClick={() => setShowNotifications(false)}
+                className="p-1.5 text-gray-500 hover:text-gray-700"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
             <div className="flex gap-1">
               {[
                 { id: 'all', label: '全部' },
@@ -197,15 +208,15 @@ function NotificationsPopover() {
                 <button
                   key={id}
                   onClick={() => setFilter(id)}
-                 className={`px-3 py-1.5 text-xs rounded-full flex items-center gap-1
+                  className={`px-2 py-1 text-xs rounded-full flex items-center gap-1
                     ${filter === id
-                       ? id === 'like'
-                          ? 'bg-pink-100 text-pink-800 font-medium'
-                            : id === 'interaction'
-                            ? 'bg-blue-100 text-blue-800 font-medium'
-                            : 'bg-gray-100 text-gray-800 font-medium'
-                         : 'text-gray-600 hover:bg-gray-50'
-                     }`}
+                      ? id === 'like'
+                        ? 'bg-pink-100 text-pink-800 font-medium'
+                        : id === 'interaction'
+                          ? 'bg-blue-100 text-blue-800 font-medium'
+                          : 'bg-gray-100 text-gray-800 font-medium'
+                      : 'text-gray-600 hover:bg-gray-50'
+                    }`}
                 >
                   {Icon && <Icon className="w-3 h-3" />}
                   {label}
@@ -215,7 +226,7 @@ function NotificationsPopover() {
           </div>
 
           {/* 内容区域 */}
-          <div className="max-h-[480px] overflow-y-auto">
+          <div className="overflow-y-auto" style={{ height: variant === 'mobile' ? 'calc(100vh - 3rem)' : '480px' }}>
             {renderContent()}
           </div>
         </div>

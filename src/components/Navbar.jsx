@@ -3,7 +3,6 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Search, Bell, MessageCircle, Menu, X } from 'lucide-react';
 import NotificationsPopover from './NotificationsPopover';
-import MessagesPopover from './MessagesPopover';
 import SearchBar from './SearchBar';
 import anime from 'animejs';
 
@@ -73,8 +72,11 @@ function Navbar() {
 
   // 移动端菜单的用户信息组件
   const MobileUserInfo = () => (
+    
     <div className="px-4 py-3 border-t border-gray-200">
+      
       <div className="flex items-center space-x-3 mb-3">
+        
         <img
           src={user?.avatar || '/default-avatar.svg'}
           alt={user?.username}
@@ -84,22 +86,14 @@ function Navbar() {
             e.target.src = '/default-avatar.svg';
           }}
         />
+        
         <div>
           <div className="font-medium text-gray-900">{user?.username}</div>
           <div className="text-sm text-gray-500">{user?.email}</div>
         </div>
       </div>
       
-      <div className="grid grid-cols-2 gap-4 mb-3">
-        <div className="bg-gray-50 p-3 rounded-lg text-center">
-          <div className="text-sm font-medium text-gray-500">帖子</div>
-          <div className="text-lg font-semibold text-gray-900">0</div>
-        </div>
-        <div className="bg-gray-50 p-3 rounded-lg text-center">
-          <div className="text-sm font-medium text-gray-500">评论</div>
-          <div className="text-lg font-semibold text-gray-900">0</div>
-        </div>
-      </div>
+     
 
       <div className="space-y-1">
         <Link
@@ -141,7 +135,9 @@ function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
            {/* 左侧 Logo 和导航 */}
+           
           <div className="flex items-center space-x-6">
+            
             <Link
               to="/"
               className="logo-container flex items-center space-x-2 group opacity-0"
@@ -153,44 +149,13 @@ function Navbar() {
                   className="h-9 w-9 transform group-hover:scale-110 transition-transform duration-200"
                 />
               </div>
-              
+              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 text-transparent bg-clip-text">
+                星云茶会
+              </span>
             </Link>
 
-            {isAuthenticated && (
-              // 修改发布帖子按钮的 JSX
-              <Link
-                to="/create-post"
-                className="create-post-btn flex items-center px-3 py-1.5 rounded-full text-sm font-medium text-white 
-                  bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 
-                  transform transition-all duration-200 shadow-md hover:shadow-lg
-                  relative overflow-hidden group"
-              >
-                {/* 添加光效果 */}
-                <div className="absolute inset-0 w-full h-full">
-                  <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent 
-                    transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                </div>
-                
-                {/* 图标和文字 */}
-                <div className="relative flex items-center">
-                  <svg
-                    className="w-4 h-4 mr-1.5 animate-bounce-gentle"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 4v16m8-8H4"
-                    />
-                  </svg>
-                  发布帖子
-                </div>
-              </Link>
-            )}
 
+            
             {/* 导航链接 */}
             <div className="hidden md:flex items-center ml-8 space-x-4">
               {navLinks.map((link) => (
@@ -218,9 +183,10 @@ function Navbar() {
           <div className="user-area flex items-center space-x-4">
              {isAuthenticated ? (
               <>
+              
                 {/* 消息通知 */}
-                <div className="hidden md:flex items-center space-x-4">
-                   <NotificationsPopover />
+                <div className=" items-center space-x-4">
+                  
                    <button
                        onClick={() => navigate('/messages')}
                        className="relative p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-full nav-right-item opacity-0"
@@ -290,7 +256,9 @@ function Navbar() {
                         </button>
                    </div>
                  )}
+                 
                 </div>
+                
              </>
               ) : (
                  <>
@@ -309,9 +277,7 @@ function Navbar() {
                      </Link>
                  </>
                )}
-          <div className="flex-1">
-          < NotificationsPopover />
-          </div>
+
             {/* 移动端菜单按钮 */}
              <button
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -323,32 +289,23 @@ function Navbar() {
                   <Menu className="block h-6 w-6" />
                 )}
             </button>
+            {/*通知提示*/}
+            <div className="flex items-center">
+                  <NotificationsPopover />
+                </div>
          </div>
         </div>
       </div>
 
-      
-      {/* 移动端展开菜单 - 修改这部分 */}
+      {/* 移动端菜单 */}
       {isMenuOpen && (
         <div className="md:hidden bg-white border-t border-gray-200">
-          {/* 搜索框 */}
+          {/* 移动端搜索框 */}
           <div className="px-4 py-3">
             <SearchBar variant="mobile" />
           </div>
 
-          {/* 通知和消息中心 */}
-          {isAuthenticated && (
-            <div className="px-4 py-2 border-t border-gray-200">
-              <div className="flex justify-between items-center">
-                
-                <div className="flex-1">
-                  <MessagesPopover />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* 导航链接 */}
+          {/* 移动端导航链接 */}
           <div className="px-4 pt-2 pb-3 space-y-1 border-t border-gray-200">
             {navLinks.map((link) => (
               <Link
@@ -359,14 +316,14 @@ function Navbar() {
                   ${isActivePath(link.path)
                     ? 'text-blue-600 bg-blue-50'
                     : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'
-                  }`}
+                }`}
               >
                 {link.name}
               </Link>
             ))}
           </div>
 
-          {/* 发帖按钮 */}
+          {/* 移动端发帖按钮 */}
           {isAuthenticated && (
             <div className="px-4 py-3 border-t border-gray-200">
               <Link
@@ -379,70 +336,9 @@ function Navbar() {
             </div>
           )}
 
-          {/* 用户信息区域 */}
+           {/* 移动端用户信息区域 */}
           {isAuthenticated ? (
-            <div className="px-4 py-3 border-t border-gray-200">
-              <div className="flex items-center space-x-3 mb-3">
-                <img
-                  src={user?.avatar || '/default-avatar.svg'}
-                  alt={user?.username}
-                  className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = '/default-avatar.svg';
-                  }}
-                />
-                <div>
-                  <div className="font-medium text-gray-900">{user?.username}</div>
-                  <div className="text-sm text-gray-500">{user?.email}</div>
-                </div>
-
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 mb-3">
-                <div className="bg-gray-50 p-3 rounded-lg text-center">
-                  <div className="text-sm font-medium text-gray-500">帖子</div>
-                  <div className="text-lg font-semibold text-gray-900">0</div>
-                </div>
-                <div className="bg-gray-50 p-3 rounded-lg text-center">
-                  <div className="text-sm font-medium text-gray-500">评论</div>
-                  <div className="text-lg font-semibold text-gray-900">0</div>
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <Link
-                  to="/profile"
-                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  个人主页
-                </Link>
-                <Link
-                  to="/messages"
-                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  消息中心
-                </Link>
-                <Link
-                  to="/settings"
-                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  设置
-                </Link>
-                <button
-                  onClick={() => {
-                    logout();
-                    setIsMenuOpen(false);
-                  }}
-                  className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-red-600 hover:bg-red-50"
-                >
-                  退出登录
-                </button>
-              </div>
-            </div>
+            <MobileUserInfo />
           ) : (
             <div className="px-4 py-3 border-t border-gray-200 space-y-2">
               <Link
