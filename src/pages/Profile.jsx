@@ -10,6 +10,14 @@ function Profile() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // 添加状态来管理用户数据
+  const [profile, setProfile] = useState({
+    avatar: '',
+    username: '',
+    email: '',
+    bio: '',
+  });
+
   useEffect(() => {
     if (!user || !token) {
       setLoading(false);
@@ -56,7 +64,17 @@ function Profile() {
 
     fetchUserContent();
   }, [user, token]);
-
+  // 添加 useEffect 来处理用户数据的初始化
+  useEffect(() => {
+    if (user) {
+      setProfile({
+        avatar: user.avatar || '',
+        username: user.username || '',
+        email: user.email || '',
+        bio: user.bio || '',
+      });
+    }
+  }, [user]);
   useEffect(() => {
     if (!loading) {
       // 个人资料容器动画
@@ -148,8 +166,8 @@ function Profile() {
             <label className="block text-sm font-medium text-gray-700">用户名</label>
             <p className="mt-1 text-gray-900">{user.username}</p>
             <img
-              src={user.avatar || '/default-avatar.svg'}
-              alt="用户头像"
+              src={user?.avatar || '/default-avatar.png'} // 使用 user?.avatar 而不是 profile.avatar
+              alt={user?.username}
               className="w-24 h-24 rounded-full object-cover"
               onError={(e) => {
                 e.target.onerror = null;

@@ -5,14 +5,26 @@ import anime from 'animejs';
 
 function Settings() {
   const { user, token, updateUser } = useAuth();
+  // 修改初始状态设置
   const [profile, setProfile] = useState({
     nickname: user?.username || '',
     email: user?.email || '',
     bio: user?.bio || '',
-    avatar: user?.avatar || '/default-avatar.svg',
+    avatar: user?.avatar || '/default-avatar.png', // 设置默认头像
   });
   const [uploading, setUploading] = useState(false);
   const [saveStatus, setSaveStatus] = useState('');
+  useEffect(() => {
+    if (user) {
+      setProfile({
+        nickname: user.username || '',
+        email: user.email || '',
+        bio: user.bio || '',
+        avatar: user.avatar || '',
+      });
+    }
+  }, [user]);
+
 
     useEffect(() => {
         // 主要内容区域动画
@@ -131,11 +143,11 @@ function Settings() {
             <div className="flex items-center space-x-6">
               <div className="relative">
                 <img
-                  src={profile.avatar || '/default-avatar.svg'}
+                  src={user?.avatar || profile.avatar || '/default-avatar.png'}
                   alt="用户头像"
                   className="w-24 h-24 rounded-full object-cover"
                   onError={(e) => {
-                    e.target.onerror = null; // 防止循环
+                    e.target.onerror = null;
                     e.target.src = '/default-avatar.svg';
                   }}
                 />

@@ -20,35 +20,75 @@ export function AuthProvider({ children }) {
       return null
     }
   })
+  useEffect(() => {
+    const validateStoredData = async () => {
+      try {
+        const storedToken = localStorage.getItem('token');
+        const storedUser = localStorage.getItem('user');
+        
+        if (storedToken && storedUser) {
+          const parsedUser = JSON.parse(storedUser);
+          console.log('Initialization: Stored user data:', parsedUser);
+          
+          // 验证头像URL
+          if (!parsedUser.avatar) {
+            parsedUser.avatar = '/default-avatar.svg';
+            localStorage.setItem('user', JSON.stringify(parsedUser));
+          }
+          
+          setUser(parsedUser);
+        }
+      } catch (error) {
+        console.error('Error validating stored data:', error);
+        logout();
+      }
+    };
+  
+    validateStoredData();
+  }, []);
 
   const login = async (newToken, userData) => {
     try {
-      // 构建包含所有必要信息的用户对象
+      if (!userData || !newToken) {
+        throw new Error('Invalid login data');
+      }
+  
+      // 规范化用户数据
       const userWithDetails = {
-        ...userData,
-        isAdmin: userData.username === 'admin',
         id: userData.id,
         username: userData.username,
-        email: userData.email,
-        bio: userData.bio,
+        email: userData.email || '',
+        bio: userData.bio || '',
         avatar: userData.avatar || '/default-avatar.svg',
-        isVerified: userData.is_verified,
-        createdAt: userData.created_at,
+        isVerified: !!userData.is_verified,
+        isAdmin: userData.username === 'admin',
+        createdAt: userData.created_at || new Date().toISOString(),
         tokenExpiredAt: userData.token_expired_at
-      }
+      };
+  
+      console.log('Login: Processed user data:', userWithDetails);
       
-      setToken(newToken)
-      setUser(userWithDetails)
-      localStorage.setItem('token', newToken)
-      localStorage.setItem('user', JSON.stringify(userWithDetails))
-
-      // 立即验证新token
-      await verifyToken(newToken)
+      // 更新状态和本地存储
+      setToken(newToken);
+      setUser(userWithDetails);
+      
+      // 确保异步操作按顺序执行
+      await Promise.all([
+        localStorage.setItem('token', newToken),
+        localStorage.setItem('user', JSON.stringify(userWithDetails))
+      ]);
+  
+      // 验证token
+      await verifyToken(newToken);
+  
+      return userWithDetails;
     } catch (error) {
-      console.error('Error saving auth data:', error)
+      console.error('Error in login process:', error);
+      // 清理可能的部分状态
+      logout();
+      throw error;
     }
-  }
-
+  };
   const logout = () => {
     try {
       setToken(null)
@@ -62,17 +102,56 @@ export function AuthProvider({ children }) {
 
   const updateUser = (updateData) => {
     try {
+      if (!updateData) return;
+  
+      // 确保更新数据的有效性
+      const validatedUpdateData = {
+        id: updateData.id || user?.id,
+        username: updateData.username || user?.username,
+        email: updateData.email || user?.email,
+        bio: updateData.bio || user?.bio,
+        isVerified: updateData.isVerified ?? user?.isVerified,
+        createdAt: updateData.createdAt || user?.createdAt,
+      };
+  
+      // 特殊处理头像更新
+      const newAvatar = updateData.avatar !== undefined ? updateData.avatar : user?.avatar;
+      validatedUpdateData.avatar = newAvatar || '/default-avatar.svg';
+  
+      // 合并用户数据
       const updatedUser = {
         ...user,
-        ...updateData,
-        avatar: updateData.avatar || user?.avatar || '/default-avatar.svg'
+        ...validatedUpdateData,
+        // 保留管理员状态
+        isAdmin: user?.isAdmin || validatedUpdateData.username === 'admin'
+      };
+  
+      // 在更新之前打印日志
+      console.log('Previous user state:', user);
+      console.log('Update data received:', updateData);
+      console.log('New user state:', updatedUser);
+  
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+  
+      // 验证更新是否成功
+      const savedUser = localStorage.getItem('user');
+      if (savedUser) {
+        const parsedUser = JSON.parse(savedUser);
+        console.log('Saved user data:', parsedUser);
+        
+        // 验证头像URL是否正确保存
+        if (parsedUser.avatar !== updatedUser.avatar) {
+          console.warn('Avatar mismatch between memory and storage');
+        }
       }
-      setUser(updatedUser)
-      localStorage.setItem('user', JSON.stringify(updatedUser))
+  
     } catch (error) {
-      console.error('Error updating user data:', error)
+      console.error('Error updating user data:', error);
+      console.error('Update payload:', updateData);
+      throw error; // 重新抛出错误以便调用者处理
     }
-  }
+  };
 
   const verifyToken = async (currentToken) => {
     const tokenToVerify = currentToken || token;
