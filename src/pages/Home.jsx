@@ -163,7 +163,7 @@ const Home = () => {
     const [topics, setTopics] = useState([]);
     const [activeCategory, setActiveCategory] = useState(null);
     const [activeTopic, setActiveTopic] = useState(null);
-    const [sortBy, setSortBy] = useState('edited_at');
+    const [sortBy, setSortBy] = useState('created_at');
 
     // 获取所有话题
     useEffect(() => {
